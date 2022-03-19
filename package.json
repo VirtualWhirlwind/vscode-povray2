@@ -35,8 +35,7 @@
 				],
 				"extensions": [
 					".pov",
-					".inc",
-					".ini"
+					".inc"
 				],
 				"configuration": "./language-configuration.json"
 			}
