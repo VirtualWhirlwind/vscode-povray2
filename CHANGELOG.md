@@ -2,11 +2,13 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## [2.1.1] = 2022-??-??
+## [2.1.1] = 2022-03-15
 
 ### Fixed
 
 - Fixed a couple of the "box" snippets that had duplicate last values.
+- Improved compiling configuration
+- Added error message if missing povray/pvengine config setting
 
 ## [2.1.0] - 2022-03-02
 

@@ -24,11 +24,17 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
 [POV-Ray for VS Code Extension in the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=virtual-whirlwind.vscode-povray2)
 
+[POV-Ray for VS Code Extension in the Open VSX Registry](https://open-vsx.org/extension/virtual-whirlwind/vscode-povray2)
+
 [Reddit](https://www.reddit.com/r/povray/)
 
 ## What's New
 
 [View the Change Log](./CHANGELOG.md)
+
+### Version 2.1.1
+
+* Miscellaneous QOL improvements
 
 ### Version 2.1.0
 
