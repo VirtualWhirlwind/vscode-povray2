@@ -1,7 +1,6 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import CompletionItemProvider from './features/completionItemProvider'
 import Support from './support/support'
 
@@ -33,7 +32,7 @@ export interface ShellContext {
 export function registerTasks() {
 
     const taskType = "povray"; //This is the taskDefinitions type defined in package.json
-    
+
     // create a task provider
     const povrayTaskProvider = {
 
@@ -75,7 +74,7 @@ export function registerTasks() {
 
             // Build the commandline render options to pass to the executable in the shell based on the settings and appropriate to the shell context
             let renderOptions = buildRenderOptions(settings, fileInfo, context);
-            
+
             // Create the Shell Execution that runs the povray executable with the render options
             vscode.window.showInformationMessage(povrayExe + renderOptions);
             const execution = new vscode.ShellExecution(povrayExe + renderOptions, {cwd: fileInfo.fileDir});
@@ -92,14 +91,14 @@ export function registerTasks() {
 
             // define the build task
             const buildTask = new vscode.Task(
-                taskDefinition, 
-                vscode.TaskScope.Workspace, 
-                "Render Scene", 
-                "POV-Ray", 
-                execution, 
+                taskDefinition,
+                vscode.TaskScope.Workspace,
+                "Render Scene",
+                "POV-Ray",
+                execution,
                 problemMatchers);
 
-            // set the task as part of the Build task group    
+            // set the task as part of the Build task group
             buildTask.group = vscode.TaskGroup.Build;
             // clear theterminal every time the tasl is run
             buildTask.presentationOptions.clear = true;
@@ -125,10 +124,10 @@ export function registerTasks() {
 
         // If there is an exit code and it is 0 then we assume the render task was successful
         if (e.exitCode !== undefined && e.exitCode === 0) {
-            
+
             // Get the task definition from the event
             let taskDefinition = e.execution.task.definition;
-            
+
             // If we were rendering a .pov file rather than a .ini
             if (taskDefinition.filePath.endsWith(".pov")) {
 
@@ -148,11 +147,11 @@ export function registerTasks() {
                         // Set the column to be the one beside the active column
                         column = vscode.ViewColumn.Beside;
                     }
-                    
+
                     // Open the rendered image, but preserve the focus of the current document
                     vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), {viewColumn: column, preserveFocus: true});
                 }
-                
+
             }
         }
     });
@@ -165,7 +164,7 @@ export function registerTasks() {
 export function registerCommands(context: vscode.ExtensionContext) {
 
     const renderCommand = 'povray.render';
-    
+
     // Create a command handler for running the POV-Ray Render Build Task
     const renderCommandHandler = (uri:vscode.Uri) => {
 
@@ -185,7 +184,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
-    
+
 }
 
 // Gets the shell context for the current OS and VS Code configuration
@@ -201,14 +200,14 @@ export function getShellContext(settings: any) : ShellContext {
 
 // Gets information about the file in the active Text Editor
 export function getFileInfo(context: ShellContext) {
-    // Get inormation about currently open file path 
+    // Get inormation about currently open file path
     let fileInfo = {
         filePath: "",
         fileName: "",
         fileExt: "",
         fileDir: ""
     };
-    
+
     if (vscode.window.activeTextEditor !== undefined) {
 
         fileInfo.filePath = vscode.window.activeTextEditor.document.fileName;
@@ -259,18 +258,18 @@ export function buildOutFilePath(settings: any, fileInfo: any, context: ShellCon
     let outExt = getOutputFileExtension(settings);
     // Build the output file path
     // Default to the exact same path as the source file, except with an image extension
-    let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt); 
+    let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
     // If the user has deinfed an output path in the settings
     if (settings.outputPath.length > 0)
     {
         if (settings.outputPath.startsWith(".")) {
             // the outputPath defined by the user appears to be relative
-            outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);    
+            outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
         } else {
             // Use the custom output path plus the file name of the source file wirg rge extention changed to the image extension
             outFilePath = settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
         }
-        
+
     }
     // Normalize the outFileName to make sure that it works for Windows
     outFilePath = Support.normalizePath(outFilePath, context);
@@ -301,7 +300,7 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
 
     // Start building the render command that will be run in the shell
     let renderOptions = getInputFileOption(settings, fileInfo, context) ;
-    
+
     renderOptions += getDisplayRenderOption(settings);
 
     renderOptions += getDimensionOptions(settings, fileInfo);
@@ -351,7 +350,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
 }
 
 export function getDisplayRenderOption(settings: any) {
-    
+
     let displayRenderOption = " -D";
 
     if (settings.displayImageDuringRender === true) {
@@ -366,7 +365,7 @@ export function getDimensionOptions(settings: any, fileInfo: any) {
     let dimensionOptions = "";
 
     // if this is a .pov file, pass the default render width and height from the settings
-    // as commandline arguments, otherwise we assume that the .ini file will include 
+    // as commandline arguments, otherwise we assume that the .ini file will include
     // width and height instructions
     if (fileInfo.fileExt !== undefined && fileInfo.fileExt === ".pov") {
         dimensionOptions = " Width=" + settings.defaultRenderWidth + " Height=" + settings.defaultRenderHeight;
@@ -379,16 +378,16 @@ export function getDimensionOptions(settings: any, fileInfo: any) {
 
     let outputPathOption = "";
 
-    // If the user has set an output path for rendered files, 
+    // If the user has set an output path for rendered files,
     // add the output path as a commandline argument
     if (settings.outputPath.length > 0) {
 
-        // Use the actual path specified in the settings rather than the 
+        // Use the actual path specified in the settings rather than the
         // calculated full path so that we avoid unnecessary problems with
-        // output filenames that include spaces. 
-        // (Output file names with spaces fail when the shell is Powershell. 
+        // output filenames that include spaces.
+        // (Output file names with spaces fail when the shell is Powershell.
         // See: https://github.com/jmaxwilson/vscode-povray/issues/10 )
-        let outFilePath = settings.outputPath; 
+        let outFilePath = settings.outputPath;
 
         if (outFilePath.indexOf(" ") === -1)
         {
@@ -406,9 +405,9 @@ export function getDimensionOptions(settings: any, fileInfo: any) {
                 // to get POV-Ray to parse it right depending on the OS & Shell
 
                 if (context.platform === "linux" || context.platform === "darwin") {
-                    // Linux, Mac 
-                    // "'"/directory/path\ 1/file\ 1.png"'"  
-                    outFilePath = '"\'"'+outFilePath.replace(/ /g, "\\ ").replace(/\\\\/g, "\\")+'"\'"'; 
+                    // Linux, Mac
+                    // "'"/directory/path\ 1/file\ 1.png"'"
+                    outFilePath = '"\'"'+outFilePath.replace(/ /g, "\\ ").replace(/\\\\/g, "\\")+'"\'"';
                 }
                 else {
                         outFilePath = wrapPathSpaces(outFilePath, settings);
@@ -426,7 +425,7 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
 
     let libraryOption = "";
 
-    // If the user has set library path, 
+    // If the user has set library path,
     // add the library path as a commandline argument
     if (settings.libraryPath.length > 0) {
 
@@ -446,7 +445,7 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
 }
 
 export function getCustomCommandlineOptions(settings: any) {
-    
+
     let CustomOptions = "";
 
     if (settings.customCommandlineOptions.length > 0) {
