@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Removed
 
 - Removed INI syntax handling, allow other extensions to highlight
+- Improved snippets by moving comment content in to the snippet directly, thanks @bentorkington
 
 ## [2.1.1] - 2022-03-15
 
@@ -53,7 +54,7 @@ All notable changes to this project will be documented in this file.
 
 ### Major
 
-- Forked from: https://github.com/jmaxwilson/vscode-povray 
+- Forked from: https://github.com/jmaxwilson/vscode-povray
 
 ### Fixed
 
@@ -84,7 +85,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- The extension now properly handles spaces in paths and filenames for most cases. Thanks to Galbi3000 for identifying this bug and helping to fix it. 
+- The extension now properly handles spaces in paths and filenames for most cases. Thanks to Galbi3000 for identifying this bug and helping to fix it.
 
     Known Issue: On Windows using **Powershell** as the integrated terminal, if the `outputPath` setting has a path with a space in one of the path names ("`./out put`", "`C:\pov\my scenes\output`"), POV-Ray fails to honor the output path or fails to render. Spaces in path names work properly on all other supported platforms and terminals.
 
@@ -163,9 +164,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Fixed bugs related to path normalization across different platforms
-  
+
 ## [0.0.3] - 2019-03-30
- 
+
 ### Added
 
 - Feature: Open Image After Render
@@ -181,15 +182,15 @@ All notable changes to this project will be documented in this file.
 - Better handling of file paths for different integrated terminals to avoid bugs caused by the differences in slashes in different terminals and on different systems
 
 ## [0.0.2] - 2019-03-29
-  
+
 ### Added
 
 - Better install instructions for Mac, Windows
 - Added setting to specify Library Path (required for Mac)
 - Working on Mac OS X
-  
+
 ## [0.0.1] - 2019-03-28
- 
+
 ### Initial Release
 
 - Syntax Highlighting for Scene Description Language

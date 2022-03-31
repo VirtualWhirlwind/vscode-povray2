@@ -36,6 +36,7 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
 * Additional QOL improvements
     * Removed INI syntax highlighting
+    * Improved snippets
 
 ### Version 2.1.1
 
@@ -104,7 +105,7 @@ You will need to install POV-Ray for your specific OS and you will need to make 
 
 For the best experience on Windows, install the [Windows Subsystem for Linux (WSL)](https://msdn.microsoft.com/en-us/commandline/wsl/install_guide) and **Ubuntu for Windows**. Then [configure VS Code](https://code.visualstudio.com/docs/editor/integrated-terminal#_configuration) to use `C:\\Windows\\System32\\bash.exe` as the integrated shell. Once you have WSL and Ubuntu working, you can install the povray package for Ubuntu exactly the same as above.
 
-#### Windows 
+#### Windows
 Download and run the POV-Ray installer for Windows:
 
 http://www.povray.org/download/
