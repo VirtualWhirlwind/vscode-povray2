@@ -287,7 +287,7 @@ export function buildShellPOVExe(settings: any, fileInfo: any, outFilePath: any,
     // If we are running on Windows but not Bash
     if (context.platform === 'win32' && !context.isWindowsBash) {
         if (context.isWindowsPowershell) { exe = "& " + exe; }
-        exe = exe + " /EXIT /RENDER";
+        exe = exe + " /EXIT /RENDER /NORESTORE";
     }
 
     return exe;
