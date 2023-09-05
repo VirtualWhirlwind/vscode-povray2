@@ -2,6 +2,14 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+## [2.1.3] = 2023-09-08
+
+### Changed
+
+- Updated the Snippets suggestions to use more useful hints, taking out irrelevant default values (as suggest in issue #15)
+- Development package updates to bring everything up to date
+
 ## [2.1.2] = 2022-03-29
 
 ### Removed

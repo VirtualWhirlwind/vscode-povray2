@@ -32,6 +32,11 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
 [View the Change Log](./CHANGELOG.md)
 
+### Version 2.1.3
+
+* Snippet improvements
+* Development package updates
+
 ### Version 2.1.2
 
 * Additional QOL improvements
