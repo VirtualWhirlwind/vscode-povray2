@@ -78,3 +78,6 @@ test-scenes/**/*.pov-state
 
 # Ignore builds
 vscode-povray2-*.vsix
+
+# Ignore test output
+.vscode-test
