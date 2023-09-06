@@ -26,7 +26,7 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
 [POV-Ray for VS Code Extension in the Open VSX Registry](https://open-vsx.org/extension/virtual-whirlwind/vscode-povray2)
 
-[Reddit](https://www.reddit.com/r/povray/)
+[Lemmy.world](https://lemmy.world/c/povray)
 
 ## What's New
 
