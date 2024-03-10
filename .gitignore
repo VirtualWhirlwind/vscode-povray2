@@ -81,3 +81,4 @@ vscode-povray2-*.vsix
 
 # Ignore test output
 .vscode-test
+.history

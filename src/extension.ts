@@ -1,8 +1,10 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
-import CompletionItemProvider from './features/completionItemProvider'
-import Support from './support/support'
+import CompletionItemProvider from './features/completionItemProvider';
+import Support from './support/support';
+
+import { pov2RGB, povRGBDecoType, colorRegexp } from './colors';
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
@@ -12,6 +14,64 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
+
+    /** View colors in the editor */
+    let timeout: NodeJS.Timer | undefined = undefined;
+    let activeEditor = vscode.window.activeTextEditor;
+
+    function updateDecorations() {
+        if (!activeEditor) {
+            return;
+        }
+
+        const doc = activeEditor.document;
+        const regEx = colorRegexp();
+        const text = doc.getText();
+        const povRGB: vscode.DecorationOptions[] = [];
+        let match;
+        while ((match = regEx.exec(text))) {
+            const startPos = doc.positionAt(match.index);
+            const endPos = doc.positionAt(match.index + match[0].trimEnd().length);
+            const clr = pov2RGB(match);
+            const decoration = {
+                range: new vscode.Range(startPos, endPos),
+                hoverMessage: 'Color: **' + match[0] + '**',
+                renderOptions: {
+                    before: {
+                        backgroundColor: clr
+                    }
+                }
+            };
+            povRGB.push(decoration);
+        }
+        activeEditor.setDecorations(povRGBDecoType, povRGB);
+    }
+
+    function triggerUpdateDecorations() {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = undefined;
+        }
+        timeout = setTimeout(updateDecorations, 500);
+    }
+
+    if (activeEditor) {
+        triggerUpdateDecorations();
+    }
+
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        activeEditor = editor;
+        if (editor) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
+    vscode.workspace.onDidChangeTextDocument(event => {
+        if (activeEditor && event.document === activeEditor.document) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
 }
 
 // Create a Render Taks Definiton that we can use to pass around info about the render task
@@ -57,8 +117,7 @@ export function registerTasks() {
             // Get information about the currently open file
             let fileInfo = getFileInfo(context);
 
-            if (fileInfo.filePath === undefined || fileInfo.filePath === "")
-            {
+            if (fileInfo.filePath === undefined || fileInfo.filePath === "") {
                 // We don't have a file so bail with no tasks
                 return [];
             }
@@ -77,7 +136,7 @@ export function registerTasks() {
 
             // Create the Shell Execution that runs the povray executable with the render options
             vscode.window.showInformationMessage(povrayExe + renderOptions);
-            const execution = new vscode.ShellExecution(povrayExe + renderOptions, {cwd: fileInfo.fileDir});
+            const execution = new vscode.ShellExecution(povrayExe + renderOptions, { cwd: fileInfo.fileDir });
 
             // Use the $povray problem matcher defined in the package.json problemMatchers
             const problemMatchers = ["$povray"];
@@ -136,20 +195,18 @@ export function registerTasks() {
 
                 const settings = Support.getPOVSettings();
                 // If the the user has indicated that the image that ws rendered should be opened
-                if (settings.openImageAfterRender === true)
-                {
+                if (settings.openImageAfterRender === true) {
                     // Default to opening the image in the active column
                     let column = vscode.ViewColumn.Active;
 
                     // If the user has indicated that the image should be opened in a new column
-                    if (settings.openImageAfterRenderInNewColumn === true)
-                    {
+                    if (settings.openImageAfterRenderInNewColumn === true) {
                         // Set the column to be the one beside the active column
                         column = vscode.ViewColumn.Beside;
                     }
 
                     // Open the rendered image, but preserve the focus of the current document
-                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), {viewColumn: column, preserveFocus: true});
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), { viewColumn: column, preserveFocus: true });
                 }
 
             }
@@ -166,10 +223,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
     const renderCommand = 'povray.render';
 
     // Create a command handler for running the POV-Ray Render Build Task
-    const renderCommandHandler = (uri:vscode.Uri) => {
+    const renderCommandHandler = (uri: vscode.Uri) => {
 
         // Fetch all of the povray tasks
-        vscode.tasks.fetchTasks({type: "povray"}).then((tasks) => {
+        vscode.tasks.fetchTasks({ type: "povray" }).then((tasks) => {
 
             // Loop through the tasks and find the Render Scene Build Task
             tasks.forEach(task => {
@@ -188,7 +245,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
 }
 
 // Gets the shell context for the current OS and VS Code configuration
-export function getShellContext(settings: any) : ShellContext {
+export function getShellContext(settings: any): ShellContext {
     let shellContext: ShellContext = {
         platform: os.platform(),
         isWindowsBash: settings.win32Terminal == "Bash",
@@ -260,8 +317,7 @@ export function buildOutFilePath(settings: any, fileInfo: any, context: ShellCon
     // Default to the exact same path as the source file, except with an image extension
     let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
     // If the user has deinfed an output path in the settings
-    if (settings.outputPath.length > 0)
-    {
+    if (settings.outputPath.length > 0) {
         if (settings.outputPath.startsWith(".")) {
             // the outputPath defined by the user appears to be relative
             outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
@@ -299,7 +355,7 @@ export function buildShellPOVExe(settings: any, fileInfo: any, outFilePath: any,
 export function buildRenderOptions(settings: any, fileInfo: any, context: ShellContext) {
 
     // Start building the render command that will be run in the shell
-    let renderOptions = getInputFileOption(settings, fileInfo, context) ;
+    let renderOptions = getInputFileOption(settings, fileInfo, context);
 
     renderOptions += getDisplayRenderOption(settings);
 
@@ -333,7 +389,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
             // For Mac, Linux, and WSL Bash we have to put some weird quoting aroun the filename
             // and escape the space
             // "'"File\ Name.pov"'""
-            fileInputOption = '"\'"'+fileInfo.fileName.replace(/ /g, "\\ ")+'"\'"';
+            fileInputOption = '"\'"' + fileInfo.fileName.replace(/ /g, "\\ ") + '"\'"';
         }
         else {
             if (context.isWindowsPowershell) {
@@ -346,7 +402,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
         }
     }
 
-    return " "+fileInputOption;
+    return " " + fileInputOption;
 }
 
 export function getDisplayRenderOption(settings: any) {
@@ -434,10 +490,10 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
         if (context.isWindowsBash) {
             // If the shell is WSL Bash then we need to make sure that
             // the library path is translated into the correct WSL path
-            libraryOption = " Library_Path=$(wslpath '"+settings.libraryPath+"')";
+            libraryOption = " Library_Path=$(wslpath '" + settings.libraryPath + "')";
 
         } else {
-           libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
+            libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
         }
     }
 
