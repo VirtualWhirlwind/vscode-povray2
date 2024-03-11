@@ -91,6 +91,10 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
     ![Screenshot of VS Code features with POV-Ray scene language](https://raw.githubusercontent.com/VirtualWhirlwind/vscode-povray2/master/images/vscode-features.gif)
 
+* Preview of colors in the scene file
+
+    ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-color.jpg)
+
 ## Requirements
 
 *This extension does not install POV-Ray*. You need to install it yourself. (Docker support suspended pending further testing)
