@@ -4,48 +4,23 @@ import * as vscode from 'vscode';
 import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 
-import { pov2RGB, povRGBDecoType, colorRegexp } from './colors';
+
+import { colorMixerShow, updateDecorations } from './colormixer';
+
+let panelColorMix: vscode.WebviewPanel  | undefined = undefined;
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
 
     registerTasks();
     registerCommands(context);
-
+    colorMixerShow(context, panelColorMix);
+    //colorMixerAction(context);
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
 
-    /** View colors in the editor */
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;
-
-    function updateDecorations() {
-        if (!activeEditor) {
-            return;
-        }
-
-        const doc = activeEditor.document;
-        const regEx = colorRegexp();
-        const text = doc.getText();
-        const povRGB: vscode.DecorationOptions[] = [];
-        let match;
-        while ((match = regEx.exec(text))) {
-            const startPos = doc.positionAt(match.index);
-            const endPos = doc.positionAt(match.index + match[0].trimEnd().length);
-            const clr = pov2RGB(match);
-            const decoration = {
-                range: new vscode.Range(startPos, endPos),
-                hoverMessage: 'Color: **' + match[0] + '**',
-                renderOptions: {
-                    before: {
-                        backgroundColor: clr
-                    }
-                }
-            };
-            povRGB.push(decoration);
-        }
-        activeEditor.setDecorations(povRGBDecoType, povRGB);
-    }
 
     function triggerUpdateDecorations() {
         if (timeout) {
@@ -105,7 +80,7 @@ export function registerTasks() {
             // Get the POV-Ray settings
             let settings = Support.getPOVSettings();
 
-            if (settings.pvenginePath === undefined || settings.pvenginePath == null || settings.pvenginePath === "") {
+            if (settings.pvenginePath === undefined || settings.pvenginePath === null || settings.pvenginePath === "") {
                 // Missing the critical path item
                 vscode.window.showErrorMessage("Missing povray/pvengine configuration setting.");
                 return [];
@@ -241,15 +216,14 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
-
 }
 
 // Gets the shell context for the current OS and VS Code configuration
 export function getShellContext(settings: any): ShellContext {
     let shellContext: ShellContext = {
         platform: os.platform(),
-        isWindowsBash: settings.win32Terminal == "Bash",
-        isWindowsPowershell: settings.win32Terminal == "Powershell (vscode default)"
+        isWindowsBash: settings.win32Terminal === "Bash",
+        isWindowsPowershell: settings.win32Terminal === "Powershell (vscode default)"
     };
 
     return shellContext;
@@ -278,24 +252,18 @@ export function getFileInfo(context: ShellContext) {
 
 export function getOutputFileExtension(settings: any) {
     let outExt = ".png";
-    switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": outExt = ".png"; break;
-        case "jpg - JPEG (lossy)": outExt = ".jpg"; break;
-        case "bmp - Bitmap": outExt = ".bmp"; break;
-        case "tga - Targa-24 (compressed)": outExt = ".tga"; break;
-        case "tga - Targa-24": outExt = ".tga"; break;
-        case "exr - OpenEXR High Dynamic-Range": outExt = ".exr"; break;
-        case "hdr - Radiance High Dynamic-Range": outExt = ".hdr"; break;
-        case "ppm - Portable Pixmap": outExt = ".ppm"; break;
+    let outFormat = settings.outputFormat + "";
+    // the 3 first chars of settings.outputFormat are equal to the extension, we can avoid the select case
+    if (outFormat.length>=3){
+        outExt = "." + outFormat.substring(0,3);
     }
-
     return outExt;
 }
 
 export function getOutputFormatOption(settings: any) {
     let formatOption = "";
     switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": formatOption = ""; break;
+        // case "png - Portable Network Graphics": formatOption = ""; break;
         case "jpg - JPEG (lossy)": formatOption = " Output_File_Type=J"; break;
         case "bmp - Bitmap": formatOption = " Output_File_Type=B"; break;
         case "tga - Targa-24 (compressed)": formatOption = " Output_File_Type=C"; break;
@@ -314,16 +282,18 @@ export function buildOutFilePath(settings: any, fileInfo: any, context: ShellCon
 
     let outExt = getOutputFileExtension(settings);
     // Build the output file path
+    // the source file name, except with an image extension
+    let imageName = fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
     // Default to the exact same path as the source file, except with an image extension
-    let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
-    // If the user has deinfed an output path in the settings
+    let outFilePath = fileInfo.fileDir + imageName;
+    // If the user has defined an output path in the settings
     if (settings.outputPath.length > 0) {
         if (settings.outputPath.startsWith(".")) {
             // the outputPath defined by the user appears to be relative
-            outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            outFilePath = fileInfo.fileDir + settings.outputPath + imageName;
         } else {
-            // Use the custom output path plus the file name of the source file wirg rge extention changed to the image extension
-            outFilePath = settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            // Use the custom output path plus the file name of the source file with the extension changed to the image extension
+            outFilePath = settings.outputPath + imageName;
         }
 
     }
@@ -502,12 +472,14 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
 
 export function getCustomCommandlineOptions(settings: any) {
 
-    let CustomOptions = "";
+    let customOptions = "";
 
     if (settings.customCommandlineOptions.length > 0) {
-        CustomOptions = " " + settings.customCommandlineOptions.trim();
+        customOptions = " " + settings.customCommandlineOptions.trim();
     }
 
-    return CustomOptions;
+    return customOptions;
 }
+
+
 
