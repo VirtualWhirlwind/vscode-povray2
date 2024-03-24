@@ -95,6 +95,10 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-color.jpg)
 
+* Color editor
+
+    ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-colormixer.jpg)
+
 ## Requirements
 
 *This extension does not install POV-Ray*. You need to install it yourself. (Docker support suspended pending further testing)
