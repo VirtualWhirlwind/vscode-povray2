@@ -94,6 +94,11 @@
 				"command": "povray.render",
 				"title": "POV-Ray: Render Scene",
 				"icon": "icons/povray-render-icon.png"
+			},
+			{
+				"command": "povray.colormixer",
+				"title": "POV-Ray: Color Mixer",
+				"icon": "icons/povray-colormixer-icon.png"
 			}
 		],
 		"menus": {
@@ -102,12 +107,22 @@
 					"when": "resourceLangId == povray && resourceExtname != .inc",
 					"command": "povray.render",
 					"group": "navigation"
+				},
+				{
+					"when": "resourceLangId == povray",
+					"command": "povray.colormixer",
+					"group": "navigation"
 				}
 			],
 			"editor/title": [
 				{
 					"when": "resourceLangId == povray && resourceExtname != .inc",
 					"command": "povray.render",
+					"group": "navigation"
+				},
+				{
+					"when": "resourceLangId == povray",
+					"command": "povray.colormixer",
 					"group": "navigation"
 				}
 			]

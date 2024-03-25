@@ -1,17 +1,52 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
-import CompletionItemProvider from './features/completionItemProvider'
-import Support from './support/support'
+import CompletionItemProvider from './features/completionItemProvider';
+import Support from './support/support';
+
+
+import { colorMixerShow, updateDecorations } from './colormixer';
+
+let panelColorMix: vscode.WebviewPanel  | undefined = undefined;
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
 
     registerTasks();
     registerCommands(context);
-
+    colorMixerShow(context, panelColorMix);
+    //colorMixerAction(context);
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
+
+    let timeout: NodeJS.Timer | undefined = undefined;
+    let activeEditor = vscode.window.activeTextEditor;
+
+    function triggerUpdateDecorations() {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = undefined;
+        }
+        timeout = setTimeout(updateDecorations, 500);
+    }
+
+    if (activeEditor) {
+        triggerUpdateDecorations();
+    }
+
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        activeEditor = editor;
+        if (editor) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
+    vscode.workspace.onDidChangeTextDocument(event => {
+        if (activeEditor && event.document === activeEditor.document) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
 }
 
 // Create a Render Taks Definiton that we can use to pass around info about the render task
@@ -45,7 +80,7 @@ export function registerTasks() {
             // Get the POV-Ray settings
             let settings = Support.getPOVSettings();
 
-            if (settings.pvenginePath === undefined || settings.pvenginePath == null || settings.pvenginePath === "") {
+            if (settings.pvenginePath === undefined || settings.pvenginePath === null || settings.pvenginePath === "") {
                 // Missing the critical path item
                 vscode.window.showErrorMessage("Missing povray/pvengine configuration setting.");
                 return [];
@@ -57,8 +92,7 @@ export function registerTasks() {
             // Get information about the currently open file
             let fileInfo = getFileInfo(context);
 
-            if (fileInfo.filePath === undefined || fileInfo.filePath === "")
-            {
+            if (fileInfo.filePath === undefined || fileInfo.filePath === "") {
                 // We don't have a file so bail with no tasks
                 return [];
             }
@@ -77,7 +111,7 @@ export function registerTasks() {
 
             // Create the Shell Execution that runs the povray executable with the render options
             vscode.window.showInformationMessage(povrayExe + renderOptions);
-            const execution = new vscode.ShellExecution(povrayExe + renderOptions, {cwd: fileInfo.fileDir});
+            const execution = new vscode.ShellExecution(povrayExe + renderOptions, { cwd: fileInfo.fileDir });
 
             // Use the $povray problem matcher defined in the package.json problemMatchers
             const problemMatchers = ["$povray"];
@@ -136,20 +170,18 @@ export function registerTasks() {
 
                 const settings = Support.getPOVSettings();
                 // If the the user has indicated that the image that ws rendered should be opened
-                if (settings.openImageAfterRender === true)
-                {
+                if (settings.openImageAfterRender === true) {
                     // Default to opening the image in the active column
                     let column = vscode.ViewColumn.Active;
 
                     // If the user has indicated that the image should be opened in a new column
-                    if (settings.openImageAfterRenderInNewColumn === true)
-                    {
+                    if (settings.openImageAfterRenderInNewColumn === true) {
                         // Set the column to be the one beside the active column
                         column = vscode.ViewColumn.Beside;
                     }
 
                     // Open the rendered image, but preserve the focus of the current document
-                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), {viewColumn: column, preserveFocus: true});
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), { viewColumn: column, preserveFocus: true });
                 }
 
             }
@@ -166,10 +198,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
     const renderCommand = 'povray.render';
 
     // Create a command handler for running the POV-Ray Render Build Task
-    const renderCommandHandler = (uri:vscode.Uri) => {
+    const renderCommandHandler = (uri: vscode.Uri) => {
 
         // Fetch all of the povray tasks
-        vscode.tasks.fetchTasks({type: "povray"}).then((tasks) => {
+        vscode.tasks.fetchTasks({ type: "povray" }).then((tasks) => {
 
             // Loop through the tasks and find the Render Scene Build Task
             tasks.forEach(task => {
@@ -184,15 +216,14 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
-
 }
 
 // Gets the shell context for the current OS and VS Code configuration
-export function getShellContext(settings: any) : ShellContext {
+export function getShellContext(settings: any): ShellContext {
     let shellContext: ShellContext = {
         platform: os.platform(),
-        isWindowsBash: settings.win32Terminal == "Bash",
-        isWindowsPowershell: settings.win32Terminal == "Powershell (vscode default)"
+        isWindowsBash: settings.win32Terminal === "Bash",
+        isWindowsPowershell: settings.win32Terminal === "Powershell (vscode default)"
     };
 
     return shellContext;
@@ -221,24 +252,18 @@ export function getFileInfo(context: ShellContext) {
 
 export function getOutputFileExtension(settings: any) {
     let outExt = ".png";
-    switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": outExt = ".png"; break;
-        case "jpg - JPEG (lossy)": outExt = ".jpg"; break;
-        case "bmp - Bitmap": outExt = ".bmp"; break;
-        case "tga - Targa-24 (compressed)": outExt = ".tga"; break;
-        case "tga - Targa-24": outExt = ".tga"; break;
-        case "exr - OpenEXR High Dynamic-Range": outExt = ".exr"; break;
-        case "hdr - Radiance High Dynamic-Range": outExt = ".hdr"; break;
-        case "ppm - Portable Pixmap": outExt = ".ppm"; break;
+    let outFormat = settings.outputFormat + "";
+    // the 3 first chars of settings.outputFormat are equal to the extension, we can avoid the select case
+    if (outFormat.length>=3){
+        outExt = "." + outFormat.substring(0,3);
     }
-
     return outExt;
 }
 
 export function getOutputFormatOption(settings: any) {
     let formatOption = "";
     switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": formatOption = ""; break;
+        // case "png - Portable Network Graphics": formatOption = ""; break;
         case "jpg - JPEG (lossy)": formatOption = " Output_File_Type=J"; break;
         case "bmp - Bitmap": formatOption = " Output_File_Type=B"; break;
         case "tga - Targa-24 (compressed)": formatOption = " Output_File_Type=C"; break;
@@ -257,17 +282,18 @@ export function buildOutFilePath(settings: any, fileInfo: any, context: ShellCon
 
     let outExt = getOutputFileExtension(settings);
     // Build the output file path
+    // the source file name, except with an image extension
+    let imageName = fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
     // Default to the exact same path as the source file, except with an image extension
-    let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
-    // If the user has deinfed an output path in the settings
-    if (settings.outputPath.length > 0)
-    {
+    let outFilePath = fileInfo.fileDir + imageName;
+    // If the user has defined an output path in the settings
+    if (settings.outputPath.length > 0) {
         if (settings.outputPath.startsWith(".")) {
             // the outputPath defined by the user appears to be relative
-            outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            outFilePath = fileInfo.fileDir + settings.outputPath + imageName;
         } else {
-            // Use the custom output path plus the file name of the source file wirg rge extention changed to the image extension
-            outFilePath = settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            // Use the custom output path plus the file name of the source file with the extension changed to the image extension
+            outFilePath = settings.outputPath + imageName;
         }
 
     }
@@ -299,7 +325,7 @@ export function buildShellPOVExe(settings: any, fileInfo: any, outFilePath: any,
 export function buildRenderOptions(settings: any, fileInfo: any, context: ShellContext) {
 
     // Start building the render command that will be run in the shell
-    let renderOptions = getInputFileOption(settings, fileInfo, context) ;
+    let renderOptions = getInputFileOption(settings, fileInfo, context);
 
     renderOptions += getDisplayRenderOption(settings);
 
@@ -333,7 +359,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
             // For Mac, Linux, and WSL Bash we have to put some weird quoting aroun the filename
             // and escape the space
             // "'"File\ Name.pov"'""
-            fileInputOption = '"\'"'+fileInfo.fileName.replace(/ /g, "\\ ")+'"\'"';
+            fileInputOption = '"\'"' + fileInfo.fileName.replace(/ /g, "\\ ") + '"\'"';
         }
         else {
             if (context.isWindowsPowershell) {
@@ -346,7 +372,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
         }
     }
 
-    return " "+fileInputOption;
+    return " " + fileInputOption;
 }
 
 export function getDisplayRenderOption(settings: any) {
@@ -434,10 +460,10 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
         if (context.isWindowsBash) {
             // If the shell is WSL Bash then we need to make sure that
             // the library path is translated into the correct WSL path
-            libraryOption = " Library_Path=$(wslpath '"+settings.libraryPath+"')";
+            libraryOption = " Library_Path=$(wslpath '" + settings.libraryPath + "')";
 
         } else {
-           libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
+            libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
         }
     }
 
@@ -446,12 +472,14 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
 
 export function getCustomCommandlineOptions(settings: any) {
 
-    let CustomOptions = "";
+    let customOptions = "";
 
     if (settings.customCommandlineOptions.length > 0) {
-        CustomOptions = " " + settings.customCommandlineOptions.trim();
+        customOptions = " " + settings.customCommandlineOptions.trim();
     }
 
-    return CustomOptions;
+    return customOptions;
 }
+
+
 
