@@ -23,6 +23,39 @@ function txFloat(textbox) {
     });
   });
 }
+class PovClr {
+  constructor(r, g, b, f, t) {
+    this.clr = [r || 0, g || 0, b || 0, f || 0, t || 0];
+  }
+  fromArr(arr) {
+    arr.forEach((a, b) => {
+      this.clr[b] = a;
+    });
+  }
+  get _pov() {
+    let c = this.clr;
+    let s = "rgb" + (c[3] > 0 ? "f" : "") + (c[4] > 0 ? "t" : "") + "<" + c[0] + "," + c[1] + "," + c[2];
+    if (c[3] > 0) {s += "," + c[3];};
+    if (c[4] > 0) {s += "," + c[4];};
+    s += ">";
+    return s;
+  }
+  get _cssA() {
+    let s = "rgba(" + this.clr[0] * 255 + "," + this.clr[1] * 255 + "," + this.clr[2] * 255;
+    s += "," + Math.min(1 - this.clr[3], 1 - this.clr[4]);
+    s += ")";
+    return s;
+  }
+  get _css() {
+    return "rgb(" + this.clr[0] * 255 + "," + this.clr[1] * 255 + "," + this.clr[2] * 255 + ")";
+  }
+
+  _mix(a, b) {
+    this.clr.forEach((v, i) => {
+      this.clr[i] = (a.clr[i] + b.clr[i]) / 2;
+    });
+  }
+}
 
 d.addEventListener("DOMContentLoaded", () => {
   vals = Array.from(qSel(".range input[type=range]"));
@@ -59,32 +92,16 @@ d.addEventListener("DOMContentLoaded", () => {
       range.c2 = range.c1 + colorpov.length;
     }
   };
-  function vColor() {
-    mx = gE("mixer");
-    mxa = gE("mixeralpha");
-    res = [];
-    vals.forEach((a, b) => {
-      if (b < 3) {
-        res[b] = vals[b].value * 255;
-      }
-    });
 
-    flt = vals[3].value;
-    trans = vals[4].value;
-    alpha = Math.min(1 - flt, 1 - trans);
-    mx.style.backgroundColor = "rgb(" + res.join(",") + ")";
-    mxa.style.backgroundColor = "rgba(" + res.join(",") + "," + alpha + ")";
-    colname = "rgb";
-    colorpov = vals[0].value + "," + vals[1].value + "," + vals[2].value;
-    if (flt > 0) {
-      colname += "f";
-      colorpov += "," + flt;
-    }
-    if (trans > 0) {
-      colname += "t";
-      colorpov += "," + trans;
-    }
-    colorpov = `${colname}<${colorpov}>`;
+  function vColor() {
+    arrClr = [];
+    vals.forEach((a, b) => { arrClr[b] = a.value; });
+
+    tClr = new PovClr();
+    tClr.fromArr(arrClr);
+    colorpov = tClr._pov;
+    gE("mixeralpha").style.backgroundColor = tClr._cssA;
+    gE("mixer").style.backgroundColor = tClr._css;
   }
 
   vColor();

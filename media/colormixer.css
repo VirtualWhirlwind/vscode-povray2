@@ -15,10 +15,10 @@ div#colmixer {
 #mixer { position: absolute; width: 100%; height: 60%;}
 #mixeralpha{top: 60%; position: absolute; width: 100%; height: 40%; left: 0;}
 
-.range{ margin: 2px 0 2px 12px;}
+.range{ margin: 1px 0 1px 12px;}
 .range label{width:10%;display:inline-block;}
 .range input[type=range]{width:75%}
-.range input[type=text]{ width: 10%; padding: 5px; font-size: medium; border-radius: 6px;}
+.range input[type=text]{ width: 10%; padding: 1px 5px; font-size: medium; border-radius: 4px;}
 
 
 input[type="range"] {

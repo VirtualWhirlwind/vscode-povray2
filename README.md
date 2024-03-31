@@ -99,6 +99,10 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-colormixer.jpg)
 
+* Preview of images on hover for image_map and height_field
+
+    ![Screenshot of VS Code features with POV-Ray scene language](images/povray_image_preview_03-31-2024_01.jpg)
+
 ## Requirements
 
 *This extension does not install POV-Ray*. You need to install it yourself. (Docker support suspended pending further testing)

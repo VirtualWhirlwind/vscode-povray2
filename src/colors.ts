@@ -1,5 +1,9 @@
 import * as vc from 'vscode';
 
+// regexp for line comments (\/\/[^\n]*)
+// regexp for multiline comments \/\*(.*)\*\/
+// regexp fpr string including scaped dpuble quote "[^"\\]*(?:\\[\s\S][^"\\]*)*"
+
 export const povRGBDecoType = vc.window.createTextEditorDecorationType({
 	border: '1px solid #cccc',
 	borderSpacing: '0 2px',
@@ -39,7 +43,6 @@ function str255(str: number) {
 export function rgbftArr(match: any) {
 	let mg = match.groups;
 	let rgbft = [0, 0, 0, 0, 0];
-	let r = 0, g = 0, b = 0, f = 0, t = 0;
 	if (mg.rbg2) {
 		if (mg.rbg2 === "rgbf" || mg.rbg2 === "rgbft") {
 			rgbft[3] = parseFloat(mg.rgb1);

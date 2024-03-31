@@ -7,8 +7,6 @@ export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any 
     context.subscriptions.push(
         vc.commands.registerCommand('povray.colormixer', (thisDoc) => {
             let editor = vc.window.activeTextEditor;
-            console.log(panelColorMix);
-            console.log(thisDoc);
             if (!panelColorMix) {
                 const panel = vc.window.createWebviewPanel('POV color mixer', 'POVray color mixer', vc.ViewColumn.Two, {
                     enableScripts: true,
@@ -53,16 +51,11 @@ export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any 
     );
 
     vc.commands.registerCommand('povray.colormixerShow', (data) => {
-        console.log(data);
-        console.log(data.pos.l1);
-        console.log(data.pos.c1);
         // seleccionamos el texto para que la selección sea el color
         let editor = vc.window.activeTextEditor;
         if (editor) {
             let range = data.pos;
             editor.selection = new vc.Selection(new vc.Position(range.l1, range.c1), new vc.Position(range.l2, range.c2));
-            console.log(editor.selection);
-            console.log(editor.selections);
         }
 
         if (!panelColorMix) {
@@ -89,12 +82,8 @@ function getWebviewContent(context: vc.ExtensionContext, webview: vc.Webview) {
 <body>
 
 <div id="colmixer">
-<div id='bgmixer'>
-    <div id='mixer'></div>
-    <div id='mixeralpha'></div>
-</div>
-<div id="col2">
-`;
+<div id='bgmixer'><div id='mixer'></div><div id='mixeralpha'></div></div>
+<div id="col2">`;
     let clrNames = ["red", "green", "blue", "filter", "transmit"];
     clrNames.forEach((a, b) => {
         html +=
@@ -137,9 +126,34 @@ export function updateDecorations() {
         colorMixCaller.isTrusted = true;
         colorMixCaller.supportHtml = true;
         colorMixCaller.isTrusted = true;
-        const decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: { before: { backgroundColor: clr } } };
+        const decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: {before: { backgroundColor: clr }} };
         povRGB.push(decoration);
     }
 
+/*
+    // preview color_maps
+    let matchCmap;
+    const regEx2 = new RegExp("color_map\\s*{\\s*([^}]*)*}", "g");
+    while ((matchCmap = regEx2.exec(text))) {
+
+        const pos0 = doc.positionAt(matchCmap.index);
+        console.log(pos0);
+        const pos1 = doc.positionAt(matchCmap.index + matchCmap[0].trimEnd().length);
+        console.log(pos1);
+        console.log(matchCmap);
+        //const clrArr = rgbftArr(matchCmap);
+        //const clr = pov2RGB(clrArr);
+        const matchStr = matchCmap[0].replace(/(\s{2,})/g, " ");
+        const tRange = new vc.Range(pos0, pos1);
+        let wvData = JSON.stringify({ clr: clrArr, pos: { l1: pos0.line, c1: pos0.character, l2: pos1.line, c2: pos1.character } });
+        const colorMixCaller = new vc.MarkdownString(`[Edit **Color**](command:povray.colormixerShow?${encodeURI(wvData)})`);
+        colorMixCaller.isTrusted = true;
+        colorMixCaller.supportHtml = true;
+        colorMixCaller.isTrusted = true;
+        //const decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: {before: { backgroundColor: clr }} };
+        //povRGB.push(decoration);
+        
+    }
+*/
     activeEditor.setDecorations(povRGBDecoType, povRGB);
 }

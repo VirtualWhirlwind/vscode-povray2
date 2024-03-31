@@ -38,7 +38,7 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
         else if (linePrefix.endsWith('interior { ')) { return this._interiors; }
         else if (linePrefix.endsWith('color_map { ')) { return this._color_maps; }
         else if (linePrefix.endsWith('pigment { ')) { return this._pigments; }
-        
+
         return undefined;
     }
 
@@ -46,30 +46,24 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
         let settings = Support.getPOVSettings();
         if (settings.libraryPath.length > 0) {
             // JAC: Not ready to load all INC files yet, start with targeted ones
-            if (fs.existsSync(settings.libraryPath+'/colors.inc')) { this.loadFile(settings.libraryPath+'/colors.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/finish.inc')) { this.loadFile(settings.libraryPath+'/finish.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/glass.inc')) { this.loadFile(settings.libraryPath+'/glass.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/golds.inc')) { this.loadFile(settings.libraryPath+'/golds.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/metals.inc')) { this.loadFile(settings.libraryPath+'/metals.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stones1.inc')) { this.loadFile(settings.libraryPath+'/stones1.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stones2.inc')) { this.loadFile(settings.libraryPath+'/stones2.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stars.inc')) { this.loadFile(settings.libraryPath+'/stars.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/textures.inc')) { this.loadFile(settings.libraryPath+'/textures.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/woods.inc')) { this.loadFile(settings.libraryPath+'/woods.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/woodmaps.inc')) { this.loadFile(settings.libraryPath+'/woodmaps.inc'); }
+            let includes = ["colors", "finish", "glass", "golds", "metals", "stones1", "stones2", "stars", "textures", "woods", "woodmaps"];
+            includes.forEach((a) => {
+                let includePath = settings.libraryPath + '/' + a + '.inc';
+                if (fs.existsSync(includePath)) { this.loadFile(includePath); }
+            });
         }
     }
 
     loadFile(fileName: string) {
         const content = fs.readFileSync(fileName, 'utf8');
         let filePieces = fileName.split('/');
-        let incName = filePieces[filePieces.length-1];
+        let incName = filePieces[filePieces.length - 1];
         let pieces = content.replace(/\r?\n|\r/g, ' ').replace(/=/g, ' ').split(/\s+/);
-        for (let i = 0; i<pieces.length; i++) {
-            if (pieces[i] == '#declare' && (i+2) < pieces.length) {
-                let newItem = new vscode.CompletionItem(pieces[i+1], vscode.CompletionItemKind.Constant);
+        for (let i = 0; i < pieces.length; i++) {
+            if (pieces[i] === '#declare' && (i + 2) < pieces.length) {
+                let newItem = new vscode.CompletionItem(pieces[i + 1], vscode.CompletionItemKind.Constant);
                 newItem.detail = incName;
-                switch (pieces[i+2])
+                switch (pieces[i + 2])
                 {
                     case 'color':
                     case 'rgb':

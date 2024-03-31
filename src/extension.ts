@@ -3,11 +3,26 @@ import * as path from "path";
 import * as vscode from 'vscode';
 import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
-
+import * as fs from 'fs';
+//const path = require('path');
+//sconst vscode = require('vscode');
 
 import { colorMixerShow, updateDecorations } from './colormixer';
 
-let panelColorMix: vscode.WebviewPanel  | undefined = undefined;
+let panelColorMix: vscode.WebviewPanel | undefined = undefined;
+
+
+/**
+function activate(context)
+{
+
+
+	
+}
+
+exports.activate = activate;
+ */
+
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
@@ -18,6 +33,78 @@ export function activate(context: vscode.ExtensionContext) {
     //colorMixerAction(context);
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.openImage', (imgPath) => {
+        vscode.commands.executeCommand('vscode.open', vscode.Uri.file(imgPath));
+    }));
+
+    let disposableImg = vscode.languages.registerHoverProvider("povray", {
+        provideHover(doc, position, token) {
+            const line = doc.lineAt(position.line).text;
+            const imgPattern = new RegExp(`(image_map|height_field)\\s*{\\s*((?<type>gif|tga|iff|ppm|pgm|png|jpeg|tiff|sys)\\s*){0,1}"(?<img>[^"]*)`, "g");
+            const match = imgPattern.exec(line);
+
+            if (match && match.groups && match.groups.img) {
+                let currImg = doc.uri.fsPath;
+                currImg = currImg.substring(0, currImg.lastIndexOf("\\")) + "\\" + match.groups.img;
+                let exists = fs.existsSync(currImg);
+                if (!exists) {
+                    // if does not exists we search in the library path
+                    let settings = Support.getPOVSettings();
+                    let libPath = settings.libraryPath;
+                    exists = fs.existsSync(libPath + match.groups.img);
+                    if (exists) { currImg = libPath + match.groups.img; }
+                }
+                if (exists) {
+                    const imgUri = vscode.Uri.file(currImg).toString();
+                    const content = [`### ${match.groups.img} [Open](command:extension.openImage?${encodeURIComponent(JSON.stringify(currImg))})`,
+                        '',
+                    `![Image](${imgUri})`,
+                    ].join('\n');
+                    const md = new vscode.MarkdownString(content, true);
+                    md.isTrusted = true;
+                    return new vscode.Hover(md);
+                }
+            }
+        }
+    });
+    context.subscriptions.push(disposableImg);
+/*
+    const svg = `<svg width="100%" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
+    <defs>
+        <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(30)'>
+            <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
+            <rect x='0' y='0' width='10' height='10' fill='#000' />
+            <rect x='10' y='10' width='10' height='10' fill='#000' />
+        </pattern>
+        <linearGradient id="svgGrad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stop-color="rgba(255,255,255,1)" num="0" />
+            <stop offset="100%" stop-color="rgba(0,0,0,1)" num="1"/>
+        </linearGradient>
+    </defs>
+    <rect width='100%' height='60' fill='url(#a)' />
+    <rect x="0" y="0" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
+</svg>`;
+
+    let disposable = vscode.languages.registerHoverProvider("povray", {
+        provideHover(document, position, token) {
+            const line = document.lineAt(position.line).text;
+            const commentPattern = new RegExp(`(color_map)\\s*{`);
+            const match = line.match(commentPattern);
+            if (match && match[1]) {
+                const hoverContent = ['### Color map preview', match[1], '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg)})`,
+                ].join('\n');
+                const md = new vscode.MarkdownString(hoverContent, true);
+                md.isTrusted = true;
+                return new vscode.Hover(md);
+            }
+        }
+    });
+    context.subscriptions.push(disposable);
+*/
+
+
+
 
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;
@@ -254,8 +341,8 @@ export function getOutputFileExtension(settings: any) {
     let outExt = ".png";
     let outFormat = settings.outputFormat + "";
     // the 3 first chars of settings.outputFormat are equal to the extension, we can avoid the select case
-    if (outFormat.length>=3){
-        outExt = "." + outFormat.substring(0,3);
+    if (outFormat.length >= 3) {
+        outExt = "." + outFormat.substring(0, 3);
     }
     return outExt;
 }
