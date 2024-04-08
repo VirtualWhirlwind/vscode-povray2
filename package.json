@@ -207,7 +207,18 @@
 				"language": "povray",
 				"path": "./snippets/snippets.json"
 			}
-		]
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "colors_inc",
+					"name": "colors_inc",
+					"when": "resourceLangId == povray",
+					"icon": "media/dep.svg",
+					"contextualTitle": "Colors defined in colors.inc"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",

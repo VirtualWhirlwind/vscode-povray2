@@ -95,9 +95,9 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-color.jpg)
 
-* Color editor
+* Color editor and browser for colors declared in "colors.inc" if the library path is stablished in the configuration
 
-    ![Screenshot of VS Code features with POV-Ray scene language](images/vscode-povray2-colormixer.jpg)
+    ![Screenshot of VS Code features with POV-Ray scene language](images/colors_inc_04-08-2024_01.png)
 
 * Preview of images on hover for image_map and height_field
 

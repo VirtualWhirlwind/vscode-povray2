@@ -1,7 +1,55 @@
 let d = document, range, colorpov, wvvscode;
 gE = function (id) { return d.getElementById(id); };
 qSel = function (s) { return d.querySelectorAll(s); };
+_atr = function (o, atr, val) { if (val) { o.setAttribute(atr, val); } else { return o.getAttribute(atr); } };
+_atrF = function (o, atr) { return parseFloat(_atr(o, atr)); };
+_atrs = function (o, atrs) { for (var n in atrs) { _atr(o, n, atrs[n]); } };
+selOption = function (select) { return select.options[select.selectedIndex]; }
+
+elNS = function (tag, atrs) {
+  let ccc = d.createElementNS('http://www.w3.org/2000/svg', tag);
+  _atrs(ccc, atrs);
+  return ccc;
+};
+_sty = function (obj, styles) { for (let n in styles) { obj.style[n] = styles[n]; }; };
+
 parts = [];
+
+function addEle(b, e, a, f) {
+  var c = d.createElement(b);
+  if (a !== "") { c.appendChild(d.createTextNode(a)); }
+  if (e !== null) { e.appendChild(c); }
+  if (f !== undefined) { for (let d in f) { c.setAttribute(d, f[d]); } } return c;
+};
+
+(function (d) {
+  d.addEventListener("DOMContentLoaded", function (event) {
+    Array.from(qSel(".tabpages")).forEach(function (a) {
+      var tabs = addEle("ul", a, "", { class: "tab-bar" });
+      a.insertBefore(tabs, a.firstChild);
+      var tabPages = Array.from(a.querySelectorAll(".tab-page"));
+      let totPages = 0;
+      tabPages.forEach(function (b, i) {
+        if (b.parentElement !== a) { return; }
+        var este = addEle("li", tabs, _atr(b, "title"), { "page": _atr(b, "id") });
+        totPages++;
+        este.page = b;
+        if (i === 0) {
+          [este, b].forEach((a, i) => { a.classList.add("selected"); });
+          tabs.selected = este;
+        }
+        este.page = b;
+        este.parent = tabs;
+        este.onclick = function (t) {
+          var x = este.parent.selected;
+          if (x === este) { return; }
+          este.parent.selected = this;
+          [x.page, x, este, este.page].forEach(function (a) { a.classList.toggle("selected"); });
+        }
+      });
+    });
+  });
+})(d);
 
 function txFloat(textbox) {
   ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"].forEach(function (event) {
@@ -23,6 +71,7 @@ function txFloat(textbox) {
     });
   });
 }
+
 class PovClr {
   constructor(r, g, b, f, t) {
     this.clr = [r || 0, g || 0, b || 0, f || 0, t || 0];
@@ -34,9 +83,9 @@ class PovClr {
   }
   get _pov() {
     let c = this.clr;
-    let s = "rgb" + (c[3] > 0 ? "f" : "") + (c[4] > 0 ? "t" : "") + "<" + c[0] + "," + c[1] + "," + c[2];
-    if (c[3] > 0) {s += "," + c[3];};
-    if (c[4] > 0) {s += "," + c[4];};
+    let s = "rgb" + (c[3] > 0 ? "f" : "") + (c[4] > 0 ? "t" : "") + `<${c[0]},${c[1]},${c[2]}`;
+    if (c[3] > 0) { s += "," + c[3]; };
+    if (c[4] > 0) { s += "," + c[4]; };
     s += ">";
     return s;
   }
@@ -93,6 +142,25 @@ d.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  function comparator(a, b) {
+    aa = eval(a.dataset.clr)[2];
+    bb = eval(b.dataset.clr)[2];
+    if (aa < bb) {
+      return 1;
+    }
+
+    if (aa > bb) {
+      return -1;
+    }
+
+    return 0;
+  }
+  function sortBy() {
+    var indexes = qSel("[data-clr]");
+    var indexesArray = Array.from(indexes);
+    let sorted = indexesArray.sort(comparator);
+    sorted.forEach(e => qSel("#colorsInc").appendChild(e));
+  }
   function vColor() {
     arrClr = [];
     vals.forEach((a, b) => { arrClr[b] = a.value; });
@@ -104,18 +172,76 @@ d.addEventListener("DOMContentLoaded", () => {
     gE("mixer").style.backgroundColor = tClr._css;
   }
 
-  vColor();
-
-  window.addEventListener('message', event => {
-    const message = event.data;
-    values = eval(message.command);
-    let clr = values.clr;
+  setColor = function (clr) {
     clr.forEach((a, b) => {
       vals[b].value = parseFloat(a);
       valsStr[b].value = a;
     });
     vals[0].click();
     vColor();
+  };
+
+  vColor();
+
+  window.addEventListener('message', event => {
+    const message = event.data;
+    values = eval(message.command);
+    console.log("window.addEventListener", values);
+    setColor(values.clr);
     range = values.pos;
   });
+
+  _sC = function (t) {
+    actionColorsInc = selOption(gE("selectActionColorsInc")).value;
+    if (actionColorsInc === "mixer") {
+      setColor(eval(_atr(t, 'data-clr')));
+    } else {
+      wvvscode.postMessage({ message: range, clr: _atr(t, 'data-name') });
+    }
+  };
+
+  let cInc = gE("colorsInc");
+  for (let n in colorsI) {
+    let bgColor = new PovClr();
+    bgColor.fromArr(colorsI[n]);
+    cInc.innerHTML += `<div style='background:${bgColor._cssA}' data-clr='[${colorsI[n]}]' onclick="_sC(this)" data-name="${n}"></div>`;
+  }
 });
+
+function comparator(a, b) {
+  aa = a.innerText;
+  bb = b.innerText;
+  if (aa < bb) { return -1; }
+  if (aa > bb) { return 1; }
+  return 0;
+}
+// Function to sort Data 
+function sortData() {
+  var iArr = Array.from(qSel("[data-clr]"));
+  let sorted = iArr.sort(comparator);
+  sorted.forEach(e => gE("colorsInc").appendChild(e));
+}
+
+// filter colors by component in the tab "colors.inc"
+function showRanges(t) {
+  let iSel = t.options[t.selectedIndex].value;
+  var indexes = qSel("[data-clr]");
+  var iArray = Array.from(indexes);
+  let iVals = [[1, 2], [0, 2], [0, 1]];
+  // all colors
+  if (iSel === "*") {
+    iArray.forEach((a, b) => { a.style.display = "inline-grid"; });
+  } else if (iSel === "3") {
+    // greys
+    iArray.forEach((a, b) => {
+      ad = eval(a.dataset.clr);
+      a.style.display = (ad[0] === ad[1] && ad[1] === ad[2]) ? "inline-grid" : 'none';
+    });
+  } else {
+    // red green blue
+    iArray.forEach((a, b) => {
+      ad = eval(a.dataset.clr);
+      a.style.display = (ad[iSel] > ad[iVals[iSel][0]] && ad[iSel] > ad[iVals[iSel][1]]) ? "inline-grid" : 'none';
+    });
+  }
+};

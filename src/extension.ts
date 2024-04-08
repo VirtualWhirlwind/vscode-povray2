@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 import * as fs from 'fs';
+import { TreeDataProvider } from './colorsdataprovider';
+
 //const path = require('path');
 //sconst vscode = require('vscode');
 
@@ -11,21 +13,12 @@ import { colorMixerShow, updateDecorations } from './colormixer';
 
 let panelColorMix: vscode.WebviewPanel | undefined = undefined;
 
-
-/**
-function activate(context)
-{
-
-
-	
-}
-
-exports.activate = activate;
- */
-
-
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
+
+    vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
+        console.log('Document changed.', e.document.isDirty);
+    });
 
     registerTasks();
     registerCommands(context);
@@ -69,42 +62,60 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     context.subscriptions.push(disposableImg);
-/*
-    const svg = `<svg width="100%" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
-    <defs>
-        <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(30)'>
-            <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
-            <rect x='0' y='0' width='10' height='10' fill='#000' />
-            <rect x='10' y='10' width='10' height='10' fill='#000' />
-        </pattern>
-        <linearGradient id="svgGrad" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0%" stop-color="rgba(255,255,255,1)" num="0" />
-            <stop offset="100%" stop-color="rgba(0,0,0,1)" num="1"/>
-        </linearGradient>
-    </defs>
-    <rect width='100%' height='60' fill='url(#a)' />
-    <rect x="0" y="0" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
-</svg>`;
 
-    let disposable = vscode.languages.registerHoverProvider("povray", {
-        provideHover(document, position, token) {
-            const line = document.lineAt(position.line).text;
-            const commentPattern = new RegExp(`(color_map)\\s*{`);
-            const match = line.match(commentPattern);
-            if (match && match[1]) {
-                const hoverContent = ['### Color map preview', match[1], '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg)})`,
-                ].join('\n');
-                const md = new vscode.MarkdownString(hoverContent, true);
-                md.isTrusted = true;
-                return new vscode.Hover(md);
-            }
-        }
+    vscode.window.createTreeView('colors_inc', {
+        treeDataProvider: new TreeDataProvider()
     });
-    context.subscriptions.push(disposable);
-*/
 
-
-
+    /*
+        vscode.languages.registerDocumentFormattingEditProvider('povray', {
+            provideDocumentFormattingEdits(doc: vscode.TextDocument) {
+                const firstLine = doc.lineAt(0);
+                for (let i = 0; i < doc.lineCount; i++) {
+                    let line = doc.lineAt(i);
+                    console.log("line.rangeIncludingLineBreak", line.rangeIncludingLineBreak);
+                }
+                if (firstLine.text !== '42') {
+                    return [
+                        //vscode.TextEdit.insert(firstLine.range.start, '42\n')
+                    ];
+                }
+            }
+        });*/
+    /*
+    
+        const svg = `<svg width="100%" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
+        <defs>
+            <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(30)'>
+                <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
+                <rect x='0' y='0' width='10' height='10' fill='#000' />
+                <rect x='10' y='10' width='10' height='10' fill='#000' />
+            </pattern>
+            <linearGradient id="svgGrad" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0%" stop-color="rgba(255,255,255,1)" num="0" />
+                <stop offset="100%" stop-color="rgba(0,0,0,1)" num="1"/>
+            </linearGradient>
+        </defs>
+        <rect width='100%' height='60' fill='url(#a)' />
+        <rect x="0" y="0" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
+    </svg>`;
+    
+        let disposable = vscode.languages.registerHoverProvider("povray", {
+            provideHover(document, position, token) {
+                const line = document.lineAt(position.line).text;
+                const commentPattern = new RegExp(`(color_map)\\s*{`);
+                const match = line.match(commentPattern);
+                if (match && match[1]) {
+                    const hoverContent = ['### Color map preview', match[1], '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg)})`,
+                    ].join('\n');
+                    const md = new vscode.MarkdownString(hoverContent, true);
+                    md.isTrusted = true;
+                    return new vscode.Hover(md);
+                }
+            }
+        });
+        context.subscriptions.push(disposable);
+    */
 
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;

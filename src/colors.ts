@@ -43,14 +43,7 @@ function str255(str: number) {
 export function rgbftArr(match: any) {
 	let mg = match.groups;
 	let rgbft = [0, 0, 0, 0, 0];
-	if (mg.rbg2) {
-		if (mg.rbg2 === "rgbf" || mg.rbg2 === "rgbft") {
-			rgbft[3] = parseFloat(mg.rgb1);
-		}
-		if (mg.rbg2 === "rgbft") {
-			rgbft[4] = parseFloat(mg.rgb1);
-		}
-	}
+
 	if (mg.parts) {
 		const tx = mg.parts.trim();
 		let cmpNames = ["red", "green", "blue", "filter", "transmit"];
@@ -61,6 +54,13 @@ export function rgbftArr(match: any) {
 			let val = match.groups.val;
 			rgbft[cmpNames.indexOf(nom)] = val;
 		}
+	}
+	// 2024-04-07: solved an error that makes the one value colors with filter/transmit are not assigned correctly
+	if (mg.rgb2 === "rgbf" || mg.rgb2 === "rgbft" ) {
+		rgbft[3] = parseFloat(mg.rgb1);
+	}
+	if (mg.rgb2 === "rgbft" || mg.rgb2 === "rgbt") {
+		rgbft[4] = parseFloat(mg.rgb1);
 	}
 	rgbft[0] = parseFloat(rgbft[0] || mg.r || mg.r2 || mg.r3 || mg.r4 || mg.r5 || mg.rgb1 || 0);
 	rgbft[1] = parseFloat(rgbft[1] || mg.g || mg.g2 || mg.g3 || mg.g4 || mg.g5 || mg.rgb1 || 0);
