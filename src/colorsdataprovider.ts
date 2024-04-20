@@ -6,7 +6,6 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 	readonly onDidChangeTreeData: vscode.Event<any> = this._onDidChangeTreeData.event;
 
 	public refresh(): any {
-        console.log("desde refresh this.data",this.data);
 		this._onDidChangeTreeData.fire(undefined);
 	}
 
