@@ -5,13 +5,15 @@ import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 import * as fs from 'fs';
 import { TreeDataProvider } from './colorsdataprovider';
-
-//const path = require('path');
-//sconst vscode = require('vscode');
-
-import { colorMixerShow, updateDecorations } from './colormixer';
+import { colorMixerShow, updateDecorations, commentsInDoc, getCMap } from './colormixer';
 
 let panelColorMix: vscode.WebviewPanel | undefined = undefined;
+
+export var colorNames: any = [];
+export var colorincValues: { [key: string]: number[] };
+
+colorincValues = { "Black": [0, 0, 0, 0, 0] };
+colorNames = ["Black"];
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
@@ -22,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     registerTasks();
     registerCommands(context);
+
     colorMixerShow(context, panelColorMix);
     //colorMixerAction(context);
     // Code Completion
@@ -82,40 +85,59 @@ export function activate(context: vscode.ExtensionContext) {
                 }
             }
         });*/
-    /*
-    
-        const svg = `<svg width="100%" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
-        <defs>
-            <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(30)'>
-                <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
-                <rect x='0' y='0' width='10' height='10' fill='#000' />
-                <rect x='10' y='10' width='10' height='10' fill='#000' />
-            </pattern>
-            <linearGradient id="svgGrad" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0%" stop-color="rgba(255,255,255,1)" num="0" />
-                <stop offset="100%" stop-color="rgba(0,0,0,1)" num="1"/>
-            </linearGradient>
-        </defs>
-        <rect width='100%' height='60' fill='url(#a)' />
-        <rect x="0" y="0" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
-    </svg>`;
-    
-        let disposable = vscode.languages.registerHoverProvider("povray", {
-            provideHover(document, position, token) {
-                const line = document.lineAt(position.line).text;
-                const commentPattern = new RegExp(`(color_map)\\s*{`);
-                const match = line.match(commentPattern);
-                if (match && match[1]) {
-                    const hoverContent = ['### Color map preview', match[1], '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg)})`,
+
+    let disposable = vscode.languages.registerHoverProvider("povray", {
+
+        provideHover(document, position, token) {
+            console.log(position);
+            // si position no está en comments
+            /*
+            let comments = commentsInDoc(document.getText());
+            let currChar = 0;
+            for (let i = 0; i < position.line; i++) {
+                currChar += document.lineAt(i).text.length;
+            }
+            currChar += position.character;
+            let inComment = false;
+            for (let i = 0; i < comments.length; i++) {
+                console.log(currChar, comments[i][0], comments[i][1], currChar >= comments[i][0], currChar <= comments[i][1]);
+                if (currChar >= comments[i][0] && currChar <= comments[i][1]) {
+                    inComment = true;
+                    break;
+                }
+                if (comments[i][0] > currChar) { break; }
+            }
+            */
+            // if (!inComment) {
+            const line = document.lineAt(position.line).text;
+            const cMapPattern = new RegExp(`(([^A-Za-z\\d_]+)colou{0,1}r_map\\s*{)`);
+
+            // getCMap
+            const match = line.match(cMapPattern);
+            if (match && match[1]) {
+                // cogemos la parte 
+                var lastLine = document.lineAt(document.lineCount - 1);
+                var textRange = new vscode.Range(new vscode.Position(position.line, 0), lastLine.range.end);
+                var text = document.getText(textRange);
+                //console.log(text);
+                const cMapPartsPattern = /[^A-Za-z\d_]+colou{0,1}r_map\s*{(?<parts>[^}]*)/gm;
+                const match = cMapPartsPattern.exec(text);
+                console.log("match", match);
+                if (match && match.groups && match.groups.parts) {
+                    let svg2 = getCMap(match.groups.parts);
+                    const hoverContent = ['### Color map preview', '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg2)})`,
                     ].join('\n');
                     const md = new vscode.MarkdownString(hoverContent, true);
+
                     md.isTrusted = true;
                     return new vscode.Hover(md);
                 }
             }
-        });
-        context.subscriptions.push(disposable);
-    */
+            // }
+        }
+    });
+    context.subscriptions.push(disposable);
+
 
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;

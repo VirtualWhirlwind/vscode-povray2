@@ -1,0 +1,362 @@
+div#colmixer {
+    margin: 10px;
+    display: table;
+    width: calc(100% - 20px);
+}
+
+#bgmixer {
+    background-image: url('data:image/svg+xml,<%3Fxml version="1.0"%3F><svg width="40" height="40" viewBox="0 0 8 8" version="1.1" xmlns="http://www.w3.org/2000/svg"><rect fill="%23fff" width="8" height="8" x="0" y="0" /><rect fill="%23000" width="4" height="4" x="4" y="4" /><rect fill="%23000" width="4" height="4" x="0" y="0" /></svg>');
+    position: relative;
+    width: 40px;
+    display: table-cell;
+}
+
+#mixer {
+    position: absolute;
+    width: 100%;
+    height: 60%;
+}
+
+#mixeralpha {
+    top: 60%;
+    position: absolute;
+    width: 100%;
+    height: 40%;
+    left: 0;
+}
+
+.range {
+    margin: 1px 0 1px 12px;
+
+    label {
+        width: 10%;
+        display: inline-block;
+    }
+
+    input[type=range] {
+        width: 75%
+    }
+
+    input[type=text] {
+        width: 10%;
+        padding: 1px 5px;
+        font-size: medium;
+        border-radius: 4px;
+    }
+}
+
+
+input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+    width: 37rem;
+}
+
+/* Removes default focus */
+input[type="range"]:focus {
+    outline: none;
+}
+
+/******** Chrome, Safari, Opera and Edge Chromium styles ********/
+/* slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+    background: linear-gradient(90deg, #000 0%, #fff 100%);
+    border-radius: 5px;
+    height: 16px;
+    box-shadow: inset -3px -3px 1px #0005, inset 3px 3px 1px #fff5;
+}
+
+/* slider thumb */
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    margin-top: -2px;
+    background-color: #fff;
+    border-radius: 5px;
+    height: 20px;
+    width: 16px;
+    box-shadow: inset -3px -3px 1px #0005, inset 3px 3px 1px #fff5;
+}
+
+$colors-list: (
+    'red': #f00,
+    'green': #0f0,
+    'blue': #00f
+);
+
+@each $key, $val in $colors-list {
+    #v#{$key}::-webkit-slider-runnable-track {
+        background: linear-gradient(90deg, #000 0%, $val 100%);
+    }
+
+    /* slider thumb */
+    #v#{$key}::-webkit-slider-thumb {
+        background-color: #{$val};
+    }
+
+    #v#{$key}:focus::-webkit-slider-thumb {
+        outline: 3px solid #{$val};
+        outline-offset: 1px;
+    }
+}
+
+#vfilter::-webkit-slider-thumb,
+#vtransmit::-webkit-slider-thumb {
+    background-color: #fff;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+    outline: 3px solid #fff;
+    outline-offset: 1px;
+}
+
+#colorsInc {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    grid-column-gap: 2px;
+    grid-row-gap: 2px;
+
+    div {
+        display: inline-grid;
+        outline: solid 1px #000;
+        margin: 1px;
+        height: 60px;
+        text-align: center;
+        overflow: hidden;
+        border-radius: 6px;
+        box-shadow: inset -2px -2px 3px #0008, inset 2px 2px 3px #fff8;
+
+        &:before {
+            content: attr(data-name);
+            background: #0003;
+            height: fit-content;
+            color: #fff;
+            padding: 2px 0;
+        }
+    }
+}
+
+.tab-bar {
+    width: 100%;
+    overflow: hidden;
+    padding: 6px 6px 0px 6px;
+    background: #000;
+    margin: 0;
+
+    li {
+        padding: 6px 12px 2px 12px;
+        float: left;
+        width: auto;
+        border: none;
+        display: block;
+        background: #ccc;
+        outline: 0;
+        margin: 2px 2px 0 2px;
+        transform: scale(0.9) translate(0, 4px);
+        opacity: .7;
+        transition: all .1s;
+        cursor: pointer;
+        text-shadow: 1px 1px 1px #fff;
+        font-weight: bold;
+        font-size: 1.1em;
+
+        &:not(.selected) {
+            background: linear-gradient(0deg, #555 0%, rgba(255, 255, 255, 0.6) 29%)
+        }
+
+        &.selected {
+            border: solid 1px #393908;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            transform: scale(1) translate(0, 0);
+            opacity: 1;
+            background: linear-gradient(0deg, #ccc 0%, #ccc 29%)
+        }
+    }
+}
+
+.tabpages {
+    background: #ccc;
+    border: solid 1px #000;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    color: #000;
+}
+
+.tab-page {
+    display: none;
+    margin: 12px;
+    width: calc(100% - 24px);
+    height: calc(100% - 64px);
+    overflow: hidden;
+}
+
+.cnt-colorsinc {
+    overflow-y: scroll;
+    position: relative;
+    width: 100%;
+    height: calc(100% - 60px);
+}
+
+.tab-page.selected {
+    display: block
+}
+
+.tagCnt[inxname] {
+    position: relative;
+    margin-top: 12px
+}
+
+.tagCnt[inxname]:before {
+    content: attr(inxname);
+    color: #fff;
+    position: absolute;
+    bottom: 100%;
+    background: rgba(20, 70, 113, .948);
+    font-size: 10px;
+    padding: 1px 4px;
+    left: 12px
+}
+
+*,
+*:before,
+*:after {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: #444444;
+    color: #cccccc;
+    font-size: 14px;
+}
+
+.page-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.component-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.table-wrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.flexbox-item {
+    padding: 8px;
+
+    &.footer {
+        background: rgba(0, 255, 0, .1);
+    }
+
+    &.content {
+        background: rgba(0, 0, 255, .1);
+        position: relative;
+    }
+}
+
+.flexbox-item-grow {
+    flex: 1;
+}
+
+.fill-area {
+    overflow: auto;
+}
+
+.table-body {
+    height: 100%;
+}
+
+.fill-area-content {
+    background: rgba(0, 0, 0, .3);
+    border: 1px solid #000000;
+
+    /* Needed for when the area gets squished too far and there is content that can't be displayed */
+    overflow: auto;
+}
+
+
+
+#cnt {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 12px;
+    overflow: hidden scroll;
+}
+
+#gradEdit {
+    .marker {
+        box-shadow: inset -2px -1px 2px #0005, inset 2px 1px 2px #fff5;
+    }
+    #radcnt {
+        width: calc(100% - 12px);
+        position: relative;
+        height: 75px;
+
+        #markersT {
+            left: 6px;
+            height: 16px;
+            width: 100%;
+            position: absolute;
+
+            .marker {
+                border: solid 1px #000;
+                width: 12px;
+                height: 12px;
+                position: absolute;
+                border-radius: 6px 6px 0 6px;
+                transform: rotate(45deg);
+                top:3px;
+                &.selected{
+                    outline:3px #fff solid;
+                }
+            }
+        }
+
+        #gradCnt {
+            height: 60px;
+            width: 100%;
+            position: absolute;
+            left: 6px;
+            top: 19px
+        }
+    }
+
+    #gradData {
+        margin: 12px;
+
+        .marker {
+            margin: 1px;
+            padding: 3px;
+            border-radius: 5px;
+            background-image: url(../icons/edit_icon.svg);
+        }
+    }
+}

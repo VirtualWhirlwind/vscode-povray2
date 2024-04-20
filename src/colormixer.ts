@@ -1,11 +1,10 @@
 import path = require('path');
 import * as vc from 'vscode';
-import Support from './support/support';
-import * as fs from 'fs';
 
-import { pov2RGB, povRGBDecoType, colorRegexp, rgbftArr } from './colors';
+import { pov2RGB, povRGBDecoType, colorRegexp, rgbftArr, ClrMapEntry } from './colors';
+import { colorincValues } from './extension';
 
-function commentsInDoc(doc: any) {
+export function commentsInDoc(doc: any) {
     let arr = [];
     for (let i = 0; i < doc.length - 1; i++) {
         let l = doc[i], l2 = doc[i + 1], _2l = l + l2;
@@ -43,53 +42,6 @@ function commentsInDoc(doc: any) {
     return arr;
 }
 
-function getColorsInc() {
-    let settings = Support.getPOVSettings();
-    let libPath = settings.libraryPath;
-    const arrColors: { [key: string]: number[] } = {};
-    if (libPath !== undefined || libPath !== null || libPath !== "") {
-        let includeFile = libPath + '/colors.inc';
-        if (fs.existsSync(includeFile)) {
-            const content = fs.readFileSync(includeFile, 'utf8');
-            let arrComments = commentsInDoc(content);
-            let last = 0;
-            let clean = "";
-            arrComments.forEach((a, b) => {
-                if (last !== a[0] + 1) {
-                    let str = content.substring(last, a[0]);
-                    clean += str;
-                }
-                last = a[1];
-            });
-            if (last < content.length) {
-                clean += content.substring(last, content.length);
-            }
-            const regEx = new RegExp('#declare\\s*([^=]*)=\\s*([^;]*);', "g");
-
-            let match;
-            while (match = regEx.exec(clean)) {
-                let val = match[2].trim();
-                let mm = colorRegexp().exec(val);
-                let nom = match[1].trim();
-                if (mm) {
-                    arrColors[nom] = rgbftArr(mm);
-                } else {
-                    let parts = val.split("*");
-                    if (arrColors[parts[0]]) {
-                        let value = arrColors[parts[0]].slice();
-                        if (parts.length === 2) {
-                            let mult = parseFloat(parts[1]);
-                            value.forEach((a, b) => { value[b] = a * mult; });
-                        }
-                        arrColors[nom] = value;
-                    }
-                }
-            }
-        }
-        return "<script>let colorsI=" + JSON.stringify(arrColors) + "</script>";
-    }
-}
-
 export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any = undefined) {
     context.subscriptions.push(
         vc.commands.registerCommand('povray.colormixer', (thisDoc) => {
@@ -107,10 +59,7 @@ export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any 
                         let rangeWB = message.message;
                         if (editor) {
                             let sel = editor.selection;
-                            console.log("sel", sel);
                             let rngSel = new vc.Range(sel.start, sel.end);
-                            console.log(rngSel, rangeWB);
-                            console.log("rng.contains(rangeWB)", rngSel.contains(rangeWB));
                             if (rangeWB) {
                                 let pos1 = new vc.Position(rangeWB.l1, rangeWB.c1);
                                 let pos2 = new vc.Position(rangeWB.l2, rangeWB.c2);
@@ -119,7 +68,6 @@ export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any 
                                 if (rngWB.contains(rngSel)) {
                                     rngSel = rngWB;//new vc.Range(pos1, pos2);
                                     editor.selection = new vc.Selection(pos1, pos2);
-                                    //console.log("rng.contains(range)", rangeWB.contains(rngSel));
                                 }
 
                             }
@@ -161,8 +109,10 @@ export function colorMixerShow(context: vc.ExtensionContext, panelColorMix: any 
 
 function getWebviewContent(context: vc.ExtensionContext, webview: vc.Webview) {
     const myStyle = webview.asWebviewUri(vc.Uri.joinPath(context.extensionUri, 'media', 'colormixer.css'));
-    const myScript = webview.asWebviewUri(vc.Uri.joinPath(context.extensionUri, 'media', 'colormixer.js'));
+    const jsScripts = ['domutils.js', 'tabs.js', 'povClr.js', 'gradEditor.js', 'colormixer.js'];
     let clrNames = ["red", "green", "blue", "filter", "transmit"];
+
+    let cIncValues = "<script>let colorsI=" + JSON.stringify(colorincValues) + "</script>";
     let colorActions = `<div id="colorActions" style="margin:6px">
         <button onclick="sortData()">Order colors by name</button>
         | Show: <select onchange="showRanges(this)">
@@ -182,11 +132,11 @@ function getWebviewContent(context: vc.ExtensionContext, webview: vc.Webview) {
         <div class="cnt-colorsinc"><div id="colorsInc"></div></div>
     </div>`;
 
-    let tabGradientEditor = `<div class="tab-page" title="Gradient editor">
-        <div id="radcnt" style="outline:solid 1px #f00;position:relative">
-            <div id="markersT" class="markerCnt" style="left:6px;height:16px;width:100%"></div>
-            <div id="gradCnt" style="outline:solid 1px #f0f;height:60px;width:100%;position:absolute;left:6px;top:16px">
-            <svg width="120" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
+    let tabGradientEditor = `<div class="tab-page" title="Gradient editor" id="gradEdit">
+        <div id="radcnt">
+            <div id="markersT" class="markerCnt"></div>
+            <div id="gradCnt">
+            <svg width="100%" height="60" version="1.1" xmlns="http://www.w3.org/2000/svg" id="canvas">
                 <defs>
                     <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(30)'>
                         <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
@@ -199,21 +149,26 @@ function getWebviewContent(context: vc.ExtensionContext, webview: vc.Webview) {
                     </linearGradient>
                 </defs>
                 <rect width='100%' height='60' fill='url(#a)' />
-                <rect x="0" y="0" width="50" height="60" fill="url(#svgGrad)" id="grad" />
+                <rect x="0" y="0" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
             </svg>
             </div>
-            <!--textarea id='datos' style='width:100%;height:50vh'></textarea-->
         </div>
+        <div id="gradData"></div>
     </div>`;
+    let scriptsJS = "";
+    jsScripts.forEach((a) => {
+        scriptsJS += `<script src="` + webview.asWebviewUri(vc.Uri.joinPath(context.extensionUri, 'media', a)) + `"></script>`;
+    });
+
     let html = `<!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>POVray Color Mixer</title>
-      <link rel="stylesheet" type="text/css" href="${myStyle}">
-      <script src="${myScript}"></script></head>
-<body>` + getColorsInc() + `
+      <link rel="stylesheet" type="text/css" href="${myStyle}">` + scriptsJS +
+        `</head>
+<body>` + cIncValues + `
 <div class="page-wrapper">
     <div class="flexbox-item header">
         <div id="colmixer">
@@ -229,24 +184,90 @@ function getWebviewContent(context: vc.ExtensionContext, webview: vc.Webview) {
             </div>
             <div class='range'><button id="btnApply">Insert in active document</button></div>
         </div>
-
         <div class="component-wrapper">
             <div></div>
             <div class='table-wrapper fill-area content flexbox-item-grow'>
                 <div class='table-body flexbox-item fill-area content'>
                     <div class="tabpages">
                         ${tabColors}
-                        <!--${tabGradientEditor}-->
+                        ${tabGradientEditor}
                     </div>
                 </div>
-                <!--div class='table-footer flexbox-item'>footer</div-->
             </div>
         </div>
     </div>
 </body>
-</html>
-`;
+</html>`;
     return html;
+}
+
+export function getCMap(s: string) {
+    // TextEditor.visibleRanges
+    var clrMap: ClrMapEntry[] = [];
+    const regCmapP = new RegExp(/(\s*\[[^\]]*\])/, "g");
+    const regCmapNumbers = new RegExp(/\[((?<n1>(?:\d+(?:\.\d*)?|\.\d+)))((\s*,{0,1}\s*)(?<n2>(?:\d+(?:\.\d*)?|\.\d+)){0,1})(?<resto>[^\]]*)\]/, "g");
+    let matchCmapP;
+    // recorremos las partes del color_map
+    while ((matchCmapP = regCmapP.exec(s))) {
+        let s2 = matchCmapP[0].trim();
+        // esperamos un numero o 2 separados por comas
+        let matchCmapNums;
+        while ((matchCmapNums = regCmapNumbers.exec(s2))) {
+            let e1: ClrMapEntry;
+            let e2: ClrMapEntry;
+            if (matchCmapNums.groups) {
+                e1 = new ClrMapEntry(matchCmapNums.groups.n1);
+                clrMap.push(e1);
+                let colores = matchCmapNums.groups.resto;
+                let match3 = colorRegexp().exec(colores);
+                let clrArr = [0, 0, 0, 0, 0];
+                if (match3) {
+                    if (match3.groups && match3.groups.name) {
+                        clrArr = colorincValues[match3.groups.name];
+                    } else {
+                        clrArr = rgbftArr(match3);
+                    }
+                    e1.color = clrArr;
+                    let resto = colores.replace(match3[0], "");
+                    if (matchCmapNums.groups.n2) {
+                        e2 = new ClrMapEntry(matchCmapNums.groups.n2);
+                        clrMap.push(e2);
+                        let matchN2 = colorRegexp().exec(resto);
+                        let clrArr = [0, 0, 0, 0, 0];
+                        if (matchN2) {
+                            if (matchN2.groups && matchN2.groups.name) {
+                                clrArr = colorincValues[matchN2.groups.name];
+                            } else {
+                                clrArr = rgbftArr(matchN2);
+                            }
+                            e2.color = clrArr;
+                        }
+                    }
+                }
+            }
+            // esperamos un numero o 2 separados por comas
+            console.log(clrMap);
+        }
+    }
+    let stops = "";
+    clrMap.forEach((a, b) => {
+        //let fb = parseFloat(b) * 100;
+        //let clr = pov2RGB(a);
+        stops += a._toSvgStop();//`<stop offset="${fb}%" stop-color="${clr}"/>`;
+    });
+    const svg = `<svg width="100%" height="80" version="1.1" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <pattern id='a' patternUnits='userSpaceOnUse' width='20' height='20' patternTransform='scale(2) rotate(0)'>
+                <rect x='0' y='0' width='100%' height='100%' fill='#fff' />
+                <rect x='0' y='0' width='10' height='10' fill='#000' />
+                <rect x='10' y='10' width='10' height='10' fill='#000' />
+            </pattern>
+            <linearGradient id="svgGrad" x1="0" x2="1" y1="0" y2="0">${stops}</linearGradient>
+        </defs>
+        <rect width='100%' height='80' fill='url(#a)' />
+        <rect x="0" y="10" width="100%" height="60" fill="url(#svgGrad)" id="grad" />
+    </svg>`;
+    return svg;
 }
 
 export function updateDecorations() {
@@ -261,8 +282,10 @@ export function updateDecorations() {
     const text = doc.getText();
     const povRGB: vc.DecorationOptions[] = [];
     let match;
+
     while ((match = regEx.exec(text))) {
         const pos0 = doc.positionAt(match.index);
+        //console.log(pos0);
         const pos1 = doc.positionAt(match.index + match[0].trimEnd().length);
         const clrArr = rgbftArr(match);
         const clr = pov2RGB(clrArr);
@@ -273,31 +296,10 @@ export function updateDecorations() {
         colorMixCaller.isTrusted = true;
         colorMixCaller.supportHtml = true;
         colorMixCaller.isTrusted = true;
-        const decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: { before: { backgroundColor: clr } } };
+        let decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: { before: { backgroundColor: clr } } };
         povRGB.push(decoration);
     }
 
-    /*
-        // preview color_maps
-        let matchCmap;
-        const regEx2 = new RegExp("color_map\\s*{\\s*([^}]*)*}", "g");
-        while ((matchCmap = regEx2.exec(text))) {
-    
-            const pos0 = doc.positionAt(matchCmap.index);
-            const pos1 = doc.positionAt(matchCmap.index + matchCmap[0].trimEnd().length);
-            //const clrArr = rgbftArr(matchCmap);
-            //const clr = pov2RGB(clrArr);
-            const matchStr = matchCmap[0].replace(/(\s{2,})/g, " ");
-            const tRange = new vc.Range(pos0, pos1);
-            let wvData = JSON.stringify({ clr: clrArr, pos: { l1: pos0.line, c1: pos0.character, l2: pos1.line, c2: pos1.character } });
-            const colorMixCaller = new vc.MarkdownString(`[Edit **Color**](command:povray.colormixerShow?${encodeURI(wvData)})`);
-            colorMixCaller.isTrusted = true;
-            colorMixCaller.supportHtml = true;
-            colorMixCaller.isTrusted = true;
-            //const decoration = { range: tRange, hoverMessage: colorMixCaller, renderOptions: {before: { backgroundColor: clr }} };
-            //povRGB.push(decoration);
-            
-        }
-    */
     activeEditor.setDecorations(povRGBDecoType, povRGB);
+    //activeEditor.setDecorations(povCmapDecoType, povCmap);
 }

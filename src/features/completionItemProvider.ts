@@ -2,8 +2,50 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import Support from '../support/support'
 //import { getPOVSettings } from '../extension';
+import { colorincValues, colorNames } from '../extension';
+import { commentsInDoc } from '../colormixer';
+import { colorRegexp, rgbftArr } from '../colors';
 //import { EOL } from 'os';
 
+function getColorsInc(filename: string) {
+    //const arrColors: { [key: string]: number[] } = {};
+    const content = fs.readFileSync(filename, 'utf8');
+    let arrComments = commentsInDoc(content);
+    let last = 0;
+    let clean = "";
+    arrComments.forEach((a, b) => {
+        if (last !== a[0] + 1) {
+            let str = content.substring(last, a[0]);
+            clean += str;
+        }
+        last = a[1];
+    });
+    if (last < content.length) {
+        clean += content.substring(last, content.length);
+    }
+    const regEx = new RegExp('#declare\\s*([^=]*)=\\s*([^;]*);', "g");
+
+    let match;
+    while (match = regEx.exec(clean)) {
+        let val = match[2].trim();
+        let mm = colorRegexp().exec(val);
+        let nom = match[1].trim();
+        if (mm) {
+            colorNames.push(nom);
+            colorincValues[nom] = rgbftArr(mm);
+        } else {
+            let parts = val.split("*");
+            if (colorincValues[parts[0]]) {
+                let value = colorincValues[parts[0]].slice();
+                if (parts.length === 2) {
+                    let mult = parseFloat(parts[1]);
+                    value.forEach((a, b) => { value[b] = a * mult; });
+                }
+                colorincValues[nom] = value;
+            }
+        }
+    }
+}
 export default class GlobalCompletionItemProvider implements vscode.CompletionItemProvider {
     protected _colors: vscode.CompletionItem[];
     protected _finishes: vscode.CompletionItem[];
@@ -56,6 +98,10 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
 
     loadFile(fileName: string) {
         const content = fs.readFileSync(fileName, 'utf8');
+        if (fileName.indexOf("colors.inc") > 0) {
+            console.log("parse colors.inc");
+            getColorsInc(fileName);
+        }
         let filePieces = fileName.split('/');
         let incName = filePieces[filePieces.length - 1];
         let pieces = content.replace(/\r?\n|\r/g, ' ').replace(/=/g, ' ').split(/\s+/);
@@ -63,8 +109,7 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
             if (pieces[i] === '#declare' && (i + 2) < pieces.length) {
                 let newItem = new vscode.CompletionItem(pieces[i + 1], vscode.CompletionItemKind.Constant);
                 newItem.detail = incName;
-                switch (pieces[i + 2])
-                {
+                switch (pieces[i + 2]) {
                     case 'color':
                     case 'rgb':
                     case 'rgbf':

@@ -98,7 +98,7 @@
 			{
 				"command": "povray.colormixer",
 				"title": "POV-Ray: Color Mixer",
-				"icon": "icons/povray-colormixer-icon.png"
+				"icon": "icons/symbol-color.svg"
 			}
 		],
 		"menus": {

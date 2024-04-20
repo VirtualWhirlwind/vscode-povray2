@@ -1,114 +1,32 @@
-let d = document, range, colorpov, wvvscode;
-gE = function (id) { return d.getElementById(id); };
-qSel = function (s) { return d.querySelectorAll(s); };
-_atr = function (o, atr, val) { if (val) { o.setAttribute(atr, val); } else { return o.getAttribute(atr); } };
-_atrF = function (o, atr) { return parseFloat(_atr(o, atr)); };
-_atrs = function (o, atrs) { for (var n in atrs) { _atr(o, n, atrs[n]); } };
-selOption = function (select) { return select.options[select.selectedIndex]; }
-
-elNS = function (tag, atrs) {
-  let ccc = d.createElementNS('http://www.w3.org/2000/svg', tag);
-  _atrs(ccc, atrs);
-  return ccc;
-};
-_sty = function (obj, styles) { for (let n in styles) { obj.style[n] = styles[n]; }; };
 
 parts = [];
 
-function addEle(b, e, a, f) {
-  var c = d.createElement(b);
-  if (a !== "") { c.appendChild(d.createTextNode(a)); }
-  if (e !== null) { e.appendChild(c); }
-  if (f !== undefined) { for (let d in f) { c.setAttribute(d, f[d]); } } return c;
+
+
+
+
+drawMixer = function () {
+  arrStop = gE("svgGrad").getElementsByTagName("stop");
+  padre = gE("markersT");
+  for (var n = 0; n < arrStop.length; n++) {
+    var este = arrStop[n];
+    tId = "mark" + _atr(este, "num");
+    let tMark = gE(tId);
+    if (!tMark) {
+      addMark(_atr(este, "stop-color"), _atrF(este, "offset"), tId, este);
+    } else {
+      //pW = padre.offsetWidth;
+      _sty(tMark, { left: "calc(" + _atrF(este, "offset") + "% - 6px)" });
+    }
+  }
 };
 
-(function (d) {
-  d.addEventListener("DOMContentLoaded", function (event) {
-    Array.from(qSel(".tabpages")).forEach(function (a) {
-      var tabs = addEle("ul", a, "", { class: "tab-bar" });
-      a.insertBefore(tabs, a.firstChild);
-      var tabPages = Array.from(a.querySelectorAll(".tab-page"));
-      let totPages = 0;
-      tabPages.forEach(function (b, i) {
-        if (b.parentElement !== a) { return; }
-        var este = addEle("li", tabs, _atr(b, "title"), { "page": _atr(b, "id") });
-        totPages++;
-        este.page = b;
-        if (i === 0) {
-          [este, b].forEach((a, i) => { a.classList.add("selected"); });
-          tabs.selected = este;
-        }
-        este.page = b;
-        este.parent = tabs;
-        este.onclick = function (t) {
-          var x = este.parent.selected;
-          if (x === este) { return; }
-          este.parent.selected = this;
-          [x.page, x, este, este.page].forEach(function (a) { a.classList.toggle("selected"); });
-        }
-      });
-    });
-  });
-})(d);
-
-function txFloat(textbox) {
-  ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"].forEach(function (event) {
-    textbox.addEventListener(event, function (e) {
-
-      if (/^-?\d*[.]?\d*$/.test(this.value)) {
-        if (["keydown", "mousedown", "focusout"].indexOf(e.type) >= 0) {
-          this.setCustomValidity("");
-        }
-        this.oldValue = this.value;
-        this.oldSelectionStart = this.selectionStart;
-        this.oldSelectionEnd = this.selectionEnd;
-      } else if (this.hasOwnProperty("oldValue")) {
-        this.value = this.oldValue;
-        this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
-      } else {
-        this.value = "";
-      }
-    });
-  });
-}
-
-class PovClr {
-  constructor(r, g, b, f, t) {
-    this.clr = [r || 0, g || 0, b || 0, f || 0, t || 0];
-  }
-  fromArr(arr) {
-    arr.forEach((a, b) => {
-      this.clr[b] = a;
-    });
-  }
-  get _pov() {
-    let c = this.clr;
-    let s = "rgb" + (c[3] > 0 ? "f" : "") + (c[4] > 0 ? "t" : "") + `<${c[0]},${c[1]},${c[2]}`;
-    if (c[3] > 0) { s += "," + c[3]; };
-    if (c[4] > 0) { s += "," + c[4]; };
-    s += ">";
-    return s;
-  }
-  get _cssA() {
-    let s = "rgba(" + this.clr[0] * 255 + "," + this.clr[1] * 255 + "," + this.clr[2] * 255;
-    s += "," + Math.min(1 - this.clr[3], 1 - this.clr[4]);
-    s += ")";
-    return s;
-  }
-  get _css() {
-    return "rgb(" + this.clr[0] * 255 + "," + this.clr[1] * 255 + "," + this.clr[2] * 255 + ")";
-  }
-
-  _mix(a, b) {
-    this.clr.forEach((v, i) => {
-      this.clr[i] = (a.clr[i] + b.clr[i]) / 2;
-    });
-  }
-}
-
+let tClr;
 d.addEventListener("DOMContentLoaded", () => {
   vals = Array.from(qSel(".range input[type=range]"));
   valsStr = Array.from(qSel(".range input[type=text]"));
+
+  drawMixer();
   vals.forEach((a, b) => {
     valsStr[b].assoc = vals[b];
     a.oninput = function () {
@@ -155,12 +73,14 @@ d.addEventListener("DOMContentLoaded", () => {
 
     return 0;
   }
+
   function sortBy() {
     var indexes = qSel("[data-clr]");
     var indexesArray = Array.from(indexes);
     let sorted = indexesArray.sort(comparator);
     sorted.forEach(e => qSel("#colorsInc").appendChild(e));
   }
+
   function vColor() {
     arrClr = [];
     vals.forEach((a, b) => { arrClr[b] = a.value; });
@@ -186,7 +106,6 @@ d.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('message', event => {
     const message = event.data;
     values = eval(message.command);
-    console.log("window.addEventListener", values);
     setColor(values.clr);
     range = values.pos;
   });
@@ -206,6 +125,30 @@ d.addEventListener("DOMContentLoaded", () => {
     bgColor.fromArr(colorsI[n]);
     cInc.innerHTML += `<div style='background:${bgColor._cssA}' data-clr='[${colorsI[n]}]' onclick="_sC(this)" data-name="${n}"></div>`;
   }
+
+  drawMixer();
+
+  posMarks = function () {
+    drawMixer();
+  };
+  /* var targetNode = document.getElementById('gradEdit');
+   var observer = new MutationObserver(function(){
+       if(targetNode.style.display != 'none'){
+           posMarks();
+       }
+   });
+   observer.observe(targetNode, { attributes: true, childList: true });
+   //respondToVisibility(gE("gradEdit"), posMarks);
+*/
+  gE("markersT").addEventListener("mousedown", (e) => {
+    let este = gE("markersT");
+
+    pos = e.clientX - este.getBoundingClientRect().x;
+    pos = 100 / este.offsetWidth * pos;
+    colors = markPrevNext(pos);
+    iMark++;
+    addMark(tClr._cssA, pos, "mark" + iMark);
+  });
 });
 
 function comparator(a, b) {
