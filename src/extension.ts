@@ -5,10 +5,16 @@ import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 import * as fs from 'fs';
 import { TreeDataProvider } from './colorsdataprovider';
+<<<<<<< HEAD
 import { colorMixerShow, updateDecorations, panelColorMix } from './colormixer';
 import { hoverColorMap } from './colormap';
 
 // export var panelColorMix: vscode.WebviewPanel | undefined = undefined;
+=======
+import { colorMixerShow, updateDecorations, commentsInDoc, getCMap } from './colormixer';
+
+let panelColorMix: vscode.WebviewPanel | undefined = undefined;
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 
 export var colorNames: any = [];
 export var colorincValues: { [key: string]: number[] };
@@ -28,7 +34,12 @@ export function activate(context: vscode.ExtensionContext) {
     registerTasks();
     registerCommands(context);
 
+<<<<<<< HEAD
     colorMixerShow(context);
+=======
+    colorMixerShow(context, panelColorMix);
+    //colorMixerAction(context);
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
 
@@ -89,11 +100,65 @@ export function activate(context: vscode.ExtensionContext) {
         });*/
 
     let disposable = vscode.languages.registerHoverProvider("povray", {
+<<<<<<< HEAD
         provideHover(document, position, token) {
             return hoverColorMap(document, position, token);
         }
     });
     context.subscriptions.push(disposable);
+=======
+
+        provideHover(document, position, token) {
+            console.log(position);
+            // si position no está en comments
+            /*
+            let comments = commentsInDoc(document.getText());
+            let currChar = 0;
+            for (let i = 0; i < position.line; i++) {
+                currChar += document.lineAt(i).text.length;
+            }
+            currChar += position.character;
+            let inComment = false;
+            for (let i = 0; i < comments.length; i++) {
+                console.log(currChar, comments[i][0], comments[i][1], currChar >= comments[i][0], currChar <= comments[i][1]);
+                if (currChar >= comments[i][0] && currChar <= comments[i][1]) {
+                    inComment = true;
+                    break;
+                }
+                if (comments[i][0] > currChar) { break; }
+            }
+            */
+            // if (!inComment) {
+            const line = document.lineAt(position.line).text;
+            const cMapPattern = new RegExp(`(([^A-Za-z\\d_]+)colou{0,1}r_map\\s*{)`);
+
+            // getCMap
+            const match = line.match(cMapPattern);
+            if (match && match[1]) {
+                // cogemos la parte 
+                var lastLine = document.lineAt(document.lineCount - 1);
+                var textRange = new vscode.Range(new vscode.Position(position.line, 0), lastLine.range.end);
+                var text = document.getText(textRange);
+                //console.log(text);
+                const cMapPartsPattern = /[^A-Za-z\d_]+colou{0,1}r_map\s*{(?<parts>[^}]*)/gm;
+                const match = cMapPartsPattern.exec(text);
+                console.log("match", match);
+                if (match && match.groups && match.groups.parts) {
+                    let svg2 = getCMap(match.groups.parts);
+                    const hoverContent = ['### Color map preview', '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg2)})`,
+                    ].join('\n');
+                    const md = new vscode.MarkdownString(hoverContent, true);
+
+                    md.isTrusted = true;
+                    return new vscode.Hover(md);
+                }
+            }
+            // }
+        }
+    });
+    context.subscriptions.push(disposable);
+
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;

@@ -23,6 +23,33 @@ export const povCmapDecoType = vc.window.createTextEditorDecorationType({
 });
 
 
+<<<<<<< HEAD
+=======
+export class ClrMapEntry {
+	percent: number = 0;
+	color = [0, 0, 0, 0, 0];
+	constructor(percent: number|string, color=null) {
+		if (typeof percent ===  'string') {
+			percent = parseFloat(percent);
+		}
+		this.percent = percent;
+		if (color) {
+			this.color = color;
+		}
+	}
+
+	setColor(c: [number]) {
+		this.color = c;
+	}
+
+	_toSvgStop() {
+		let fb = this.percent * 100;
+		let clr = pov2RGB(this.color);
+		return `<stop offset="${fb}%" stop-color="${clr}"/>`;
+	}
+}
+
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 // 24-03-17 corregido regexp
 export function colorRegexp() {
 	// sumar colores de colorsInc

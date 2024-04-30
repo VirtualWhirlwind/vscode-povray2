@@ -3,10 +3,33 @@ drawMixer = function () {
   //arrStop = gE("svgGrad").getElementsByTagName("stop");
   //padre = gE("markersT");
 
+<<<<<<< HEAD
   new cMapPart([1, 1, 1, 0, 0], 0);
   new cMapPart([0, 0, 0, 0, 0], 1);
 };
 
+=======
+
+
+
+
+drawMixer = function () {
+  arrStop = gE("svgGrad").getElementsByTagName("stop");
+  padre = gE("markersT");
+  for (var n = 0; n < arrStop.length; n++) {
+    var este = arrStop[n];
+    tId = "mark" + _atr(este, "num");
+    let tMark = gE(tId);
+    if (!tMark) {
+      addMark(_atr(este, "stop-color"), _atrF(este, "offset"), tId, este);
+    } else {
+      //pW = padre.offsetWidth;
+      _sty(tMark, { left: "calc(" + _atrF(este, "offset") + "% - 6px)" });
+    }
+  }
+};
+
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 let tClr;
 d.addEventListener("DOMContentLoaded", () => {
   vals = Array.from(qSel(".range input[type=range]"));
@@ -99,6 +122,7 @@ d.addEventListener("DOMContentLoaded", () => {
   window.addEventListener('message', event => {
     const message = event.data;
     values = eval(message.command);
+<<<<<<< HEAD
     if (values.map) {
       cMapPart.clear();
       qSel(".tabpages li")[1].click();
@@ -111,6 +135,9 @@ d.addEventListener("DOMContentLoaded", () => {
     } else {
       setColor(values.clr);
     }
+=======
+    setColor(values.clr);
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     range = values.pos;
   });
 
@@ -133,10 +160,17 @@ d.addEventListener("DOMContentLoaded", () => {
     cInc.innerHTML += `<div style='background:${bgColor._cssA}' data-clr='[${colorsI[n]}]' onclick="_sC(this)" data-name="${n}"></div>`;
   }
 
+<<<<<<< HEAD
   //drawMixer();
 
   posMarks = function () {
     //drawMixer();
+=======
+  drawMixer();
+
+  posMarks = function () {
+    drawMixer();
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
   };
   /* var targetNode = document.getElementById('gradEdit');
    var observer = new MutationObserver(function(){
@@ -149,12 +183,21 @@ d.addEventListener("DOMContentLoaded", () => {
 */
   gE("markersT").addEventListener("mousedown", (e) => {
     let este = gE("markersT");
+<<<<<<< HEAD
     pos = e.clientX - este.getBoundingClientRect().x;
     pos = 1 / este.offsetWidth * pos;
     colors = markPrevNext(pos);
     //iMark++;
     new cMapPart(tClr.clr, pos);
     // addMark(tClr.clr, pos, "mark" + iMark);
+=======
+
+    pos = e.clientX - este.getBoundingClientRect().x;
+    pos = 100 / este.offsetWidth * pos;
+    colors = markPrevNext(pos);
+    iMark++;
+    addMark(tClr._cssA, pos, "mark" + iMark);
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
   });
 });
 
