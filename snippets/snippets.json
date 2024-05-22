@@ -380,7 +380,7 @@
         ]
     },
     "Polygon Object": {
-        "prefix": "#delcare polygon",
+        "prefix": "#declare polygon",
         "description": "Declare a Polygon object",
         "scope": "povray",
         "body":[

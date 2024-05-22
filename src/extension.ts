@@ -1,17 +1,204 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
-import CompletionItemProvider from './features/completionItemProvider'
-import Support from './support/support'
+import CompletionItemProvider from './features/completionItemProvider';
+import Support from './support/support';
+import * as fs from 'fs';
+import { TreeDataProvider } from './colorsdataprovider';
+<<<<<<< HEAD
+import { colorMixerShow, updateDecorations, panelColorMix } from './colormixer';
+import { hoverColorMap } from './colormap';
+
+// export var panelColorMix: vscode.WebviewPanel | undefined = undefined;
+=======
+import { colorMixerShow, updateDecorations, commentsInDoc, getCMap } from './colormixer';
+
+let panelColorMix: vscode.WebviewPanel | undefined = undefined;
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+
+export var colorNames: any = [];
+export var colorincValues: { [key: string]: number[] };
+
+colorincValues = { "Black": [0, 0, 0, 0, 0] };
+colorNames = ["Black"];
 
 // POV-Ray Extension Activation
 export function activate(context: vscode.ExtensionContext) {
 
+    vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
+        if (e.document.isDirty){
+            updateDecorations();
+        }
+    });
+
     registerTasks();
     registerCommands(context);
 
+<<<<<<< HEAD
+    colorMixerShow(context);
+=======
+    colorMixerShow(context, panelColorMix);
+    //colorMixerAction(context);
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
+
+    context.subscriptions.push(vscode.commands.registerCommand('extension.openImage', (imgPath) => {
+        vscode.commands.executeCommand('vscode.open', vscode.Uri.file(imgPath));
+    }));
+
+    let disposableImg = vscode.languages.registerHoverProvider("povray", {
+        provideHover(doc, position, token) {
+            const line = doc.lineAt(position.line).text;
+            const imgPattern = new RegExp(`(image_map|height_field)\\s*{\\s*((?<type>gif|tga|iff|ppm|pgm|png|jpeg|tiff|sys)\\s*){0,1}"(?<img>[^"]*)`, "g");
+            const match = imgPattern.exec(line);
+
+            if (match && match.groups && match.groups.img) {
+                let currImg = doc.uri.fsPath;
+                currImg = currImg.substring(0, currImg.lastIndexOf("\\")) + "\\" + match.groups.img;
+                let exists = fs.existsSync(currImg);
+                if (!exists) {
+                    // if does not exists we search in the library path
+                    let settings = Support.getPOVSettings();
+                    let libPath = settings.libraryPath;
+                    exists = fs.existsSync(libPath + match.groups.img);
+                    if (exists) { currImg = libPath + match.groups.img; }
+                }
+                if (exists) {
+                    const imgUri = vscode.Uri.file(currImg).toString();
+                    const content = [`### ${match.groups.img} [Open](command:extension.openImage?${encodeURIComponent(JSON.stringify(currImg))})`,
+                        '',
+                    `![Image](${imgUri})`,
+                    ].join('\n');
+                    const md = new vscode.MarkdownString(content, true);
+                    md.isTrusted = true;
+                    return new vscode.Hover(md);
+                }
+            }
+        }
+    });
+    context.subscriptions.push(disposableImg);
+
+    vscode.window.createTreeView('colors_inc', {
+        treeDataProvider: new TreeDataProvider()
+    });
+
+    /*
+        vscode.languages.registerDocumentFormattingEditProvider('povray', {
+            provideDocumentFormattingEdits(doc: vscode.TextDocument) {
+                const firstLine = doc.lineAt(0);
+                for (let i = 0; i < doc.lineCount; i++) {
+                    let line = doc.lineAt(i);
+                    console.log("line.rangeIncludingLineBreak", line.rangeIncludingLineBreak);
+                }
+                if (firstLine.text !== '42') {
+                    return [
+                        //vscode.TextEdit.insert(firstLine.range.start, '42\n')
+                    ];
+                }
+            }
+        });*/
+
+    let disposable = vscode.languages.registerHoverProvider("povray", {
+<<<<<<< HEAD
+        provideHover(document, position, token) {
+            return hoverColorMap(document, position, token);
+        }
+    });
+    context.subscriptions.push(disposable);
+=======
+
+        provideHover(document, position, token) {
+            console.log(position);
+            // si position no está en comments
+            /*
+            let comments = commentsInDoc(document.getText());
+            let currChar = 0;
+            for (let i = 0; i < position.line; i++) {
+                currChar += document.lineAt(i).text.length;
+            }
+            currChar += position.character;
+            let inComment = false;
+            for (let i = 0; i < comments.length; i++) {
+                console.log(currChar, comments[i][0], comments[i][1], currChar >= comments[i][0], currChar <= comments[i][1]);
+                if (currChar >= comments[i][0] && currChar <= comments[i][1]) {
+                    inComment = true;
+                    break;
+                }
+                if (comments[i][0] > currChar) { break; }
+            }
+            */
+            // if (!inComment) {
+            const line = document.lineAt(position.line).text;
+            const cMapPattern = new RegExp(`(([^A-Za-z\\d_]+)colou{0,1}r_map\\s*{)`);
+
+            // getCMap
+            const match = line.match(cMapPattern);
+            if (match && match[1]) {
+                // cogemos la parte 
+                var lastLine = document.lineAt(document.lineCount - 1);
+                var textRange = new vscode.Range(new vscode.Position(position.line, 0), lastLine.range.end);
+                var text = document.getText(textRange);
+                //console.log(text);
+                const cMapPartsPattern = /[^A-Za-z\d_]+colou{0,1}r_map\s*{(?<parts>[^}]*)/gm;
+                const match = cMapPartsPattern.exec(text);
+                console.log("match", match);
+                if (match && match.groups && match.groups.parts) {
+                    let svg2 = getCMap(match.groups.parts);
+                    const hoverContent = ['### Color map preview', '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg2)})`,
+                    ].join('\n');
+                    const md = new vscode.MarkdownString(hoverContent, true);
+
+                    md.isTrusted = true;
+                    return new vscode.Hover(md);
+                }
+            }
+            // }
+        }
+    });
+    context.subscriptions.push(disposable);
+
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+
+    let timeout: NodeJS.Timer | undefined = undefined;
+    let activeEditor = vscode.window.activeTextEditor;
+
+    function triggerUpdateDecorations() {
+        if (timeout) {
+            clearTimeout(timeout);
+            timeout = undefined;
+        }
+        timeout = setTimeout(updateDecorations, 200);
+    }
+
+    if (activeEditor) {
+        triggerUpdateDecorations();
+    }
+
+    /**
+    vscode.workspace.onDidChangeTextDocument(function (event) {
+        let filename = event.document.fileName;
+        let text = event.document.getText();
+    });
+     */
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+        activeEditor = editor;
+        // panelColorMix.webview.postMessage({ command: {} });
+        if (panelColorMix !== undefined) {
+            console.log("notificar al webview el cambio");
+            console.log("panelColorMix.webview",panelColorMix.webview);
+        }
+        if (editor) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
+    vscode.workspace.onDidChangeTextDocument(event => {
+        if (activeEditor && event.document === activeEditor.document) {
+            triggerUpdateDecorations();
+        }
+    }, null, context.subscriptions);
+
 }
 
 // Create a Render Taks Definiton that we can use to pass around info about the render task
@@ -45,7 +232,7 @@ export function registerTasks() {
             // Get the POV-Ray settings
             let settings = Support.getPOVSettings();
 
-            if (settings.pvenginePath === undefined || settings.pvenginePath == null || settings.pvenginePath === "") {
+            if (settings.pvenginePath === undefined || settings.pvenginePath === null || settings.pvenginePath === "") {
                 // Missing the critical path item
                 vscode.window.showErrorMessage("Missing povray/pvengine configuration setting.");
                 return [];
@@ -57,8 +244,7 @@ export function registerTasks() {
             // Get information about the currently open file
             let fileInfo = getFileInfo(context);
 
-            if (fileInfo.filePath === undefined || fileInfo.filePath === "")
-            {
+            if (fileInfo.filePath === undefined || fileInfo.filePath === "") {
                 // We don't have a file so bail with no tasks
                 return [];
             }
@@ -77,7 +263,7 @@ export function registerTasks() {
 
             // Create the Shell Execution that runs the povray executable with the render options
             vscode.window.showInformationMessage(povrayExe + renderOptions);
-            const execution = new vscode.ShellExecution(povrayExe + renderOptions, {cwd: fileInfo.fileDir});
+            const execution = new vscode.ShellExecution(povrayExe + renderOptions, { cwd: fileInfo.fileDir });
 
             // Use the $povray problem matcher defined in the package.json problemMatchers
             const problemMatchers = ["$povray"];
@@ -136,20 +322,18 @@ export function registerTasks() {
 
                 const settings = Support.getPOVSettings();
                 // If the the user has indicated that the image that ws rendered should be opened
-                if (settings.openImageAfterRender === true)
-                {
+                if (settings.openImageAfterRender === true) {
                     // Default to opening the image in the active column
                     let column = vscode.ViewColumn.Active;
 
                     // If the user has indicated that the image should be opened in a new column
-                    if (settings.openImageAfterRenderInNewColumn === true)
-                    {
+                    if (settings.openImageAfterRenderInNewColumn === true) {
                         // Set the column to be the one beside the active column
                         column = vscode.ViewColumn.Beside;
                     }
 
                     // Open the rendered image, but preserve the focus of the current document
-                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), {viewColumn: column, preserveFocus: true});
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), { viewColumn: column, preserveFocus: true });
                 }
 
             }
@@ -166,10 +350,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
     const renderCommand = 'povray.render';
 
     // Create a command handler for running the POV-Ray Render Build Task
-    const renderCommandHandler = (uri:vscode.Uri) => {
+    const renderCommandHandler = (uri: vscode.Uri) => {
 
         // Fetch all of the povray tasks
-        vscode.tasks.fetchTasks({type: "povray"}).then((tasks) => {
+        vscode.tasks.fetchTasks({ type: "povray" }).then((tasks) => {
 
             // Loop through the tasks and find the Render Scene Build Task
             tasks.forEach(task => {
@@ -184,15 +368,14 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
-
 }
 
 // Gets the shell context for the current OS and VS Code configuration
-export function getShellContext(settings: any) : ShellContext {
+export function getShellContext(settings: any): ShellContext {
     let shellContext: ShellContext = {
         platform: os.platform(),
-        isWindowsBash: settings.win32Terminal == "Bash",
-        isWindowsPowershell: settings.win32Terminal == "Powershell (vscode default)"
+        isWindowsBash: settings.win32Terminal === "Bash",
+        isWindowsPowershell: settings.win32Terminal === "Powershell (vscode default)"
     };
 
     return shellContext;
@@ -221,24 +404,18 @@ export function getFileInfo(context: ShellContext) {
 
 export function getOutputFileExtension(settings: any) {
     let outExt = ".png";
-    switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": outExt = ".png"; break;
-        case "jpg - JPEG (lossy)": outExt = ".jpg"; break;
-        case "bmp - Bitmap": outExt = ".bmp"; break;
-        case "tga - Targa-24 (compressed)": outExt = ".tga"; break;
-        case "tga - Targa-24": outExt = ".tga"; break;
-        case "exr - OpenEXR High Dynamic-Range": outExt = ".exr"; break;
-        case "hdr - Radiance High Dynamic-Range": outExt = ".hdr"; break;
-        case "ppm - Portable Pixmap": outExt = ".ppm"; break;
+    let outFormat = settings.outputFormat + "";
+    // the 3 first chars of settings.outputFormat are equal to the extension, we can avoid the select case
+    if (outFormat.length >= 3) {
+        outExt = "." + outFormat.substring(0, 3);
     }
-
     return outExt;
 }
 
 export function getOutputFormatOption(settings: any) {
     let formatOption = "";
     switch (settings.outputFormat) {
-        case "png - Portable Network Graphics": formatOption = ""; break;
+        // case "png - Portable Network Graphics": formatOption = ""; break;
         case "jpg - JPEG (lossy)": formatOption = " Output_File_Type=J"; break;
         case "bmp - Bitmap": formatOption = " Output_File_Type=B"; break;
         case "tga - Targa-24 (compressed)": formatOption = " Output_File_Type=C"; break;
@@ -257,17 +434,18 @@ export function buildOutFilePath(settings: any, fileInfo: any, context: ShellCon
 
     let outExt = getOutputFileExtension(settings);
     // Build the output file path
+    // the source file name, except with an image extension
+    let imageName = fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
     // Default to the exact same path as the source file, except with an image extension
-    let outFilePath = fileInfo.fileDir + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
-    // If the user has deinfed an output path in the settings
-    if (settings.outputPath.length > 0)
-    {
+    let outFilePath = fileInfo.fileDir + imageName;
+    // If the user has defined an output path in the settings
+    if (settings.outputPath.length > 0) {
         if (settings.outputPath.startsWith(".")) {
             // the outputPath defined by the user appears to be relative
-            outFilePath = fileInfo.fileDir + settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            outFilePath = fileInfo.fileDir + settings.outputPath + imageName;
         } else {
-            // Use the custom output path plus the file name of the source file wirg rge extention changed to the image extension
-            outFilePath = settings.outputPath + fileInfo.fileName.replace(".pov", outExt).replace(".ini", outExt);
+            // Use the custom output path plus the file name of the source file with the extension changed to the image extension
+            outFilePath = settings.outputPath + imageName;
         }
 
     }
@@ -299,7 +477,7 @@ export function buildShellPOVExe(settings: any, fileInfo: any, outFilePath: any,
 export function buildRenderOptions(settings: any, fileInfo: any, context: ShellContext) {
 
     // Start building the render command that will be run in the shell
-    let renderOptions = getInputFileOption(settings, fileInfo, context) ;
+    let renderOptions = getInputFileOption(settings, fileInfo, context);
 
     renderOptions += getDisplayRenderOption(settings);
 
@@ -333,7 +511,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
             // For Mac, Linux, and WSL Bash we have to put some weird quoting aroun the filename
             // and escape the space
             // "'"File\ Name.pov"'""
-            fileInputOption = '"\'"'+fileInfo.fileName.replace(/ /g, "\\ ")+'"\'"';
+            fileInputOption = '"\'"' + fileInfo.fileName.replace(/ /g, "\\ ") + '"\'"';
         }
         else {
             if (context.isWindowsPowershell) {
@@ -346,7 +524,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
         }
     }
 
-    return " "+fileInputOption;
+    return " " + fileInputOption;
 }
 
 export function getDisplayRenderOption(settings: any) {
@@ -434,10 +612,10 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
         if (context.isWindowsBash) {
             // If the shell is WSL Bash then we need to make sure that
             // the library path is translated into the correct WSL path
-            libraryOption = " Library_Path=$(wslpath '"+settings.libraryPath+"')";
+            libraryOption = " Library_Path=$(wslpath '" + settings.libraryPath + "')";
 
         } else {
-           libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
+            libraryOption = " " + Support.wrapPathSpaces("Library_Path=" + settings.libraryPath, settings);
         }
     }
 
@@ -446,12 +624,14 @@ export function getLibraryPathOption(settings: any, context: ShellContext) {
 
 export function getCustomCommandlineOptions(settings: any) {
 
-    let CustomOptions = "";
+    let customOptions = "";
 
     if (settings.customCommandlineOptions.length > 0) {
-        CustomOptions = " " + settings.customCommandlineOptions.trim();
+        customOptions = " " + settings.customCommandlineOptions.trim();
     }
 
-    return CustomOptions;
+    return customOptions;
 }
+
+
 

@@ -1,9 +1,82 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import Support from '../support/support'
+<<<<<<< HEAD
+import { colorincValues, colorNames } from '../extension';
+import { commentsInDoc } from '../colormixer';
+import { colorRegexp, rgbftArr } from '../colors';
+
+function getColorNameVals(name: string, val: string) {
+    let parts = val.split("*");
+    if (colorincValues[parts[0]]) {
+        let value = colorincValues[parts[0]].slice();
+        if (parts.length > 1) {
+            let mult = parseFloat(parts[1]);
+            value.forEach((a, b) => { value[b] = a * mult; });
+        }
+        colorincValues[name] = value;
+    }
+}
+
+function getColorsInc(filename: string) {
+=======
 //import { getPOVSettings } from '../extension';
+import { colorincValues, colorNames } from '../extension';
+import { commentsInDoc } from '../colormixer';
+import { colorRegexp, rgbftArr } from '../colors';
 //import { EOL } from 'os';
 
+function getColorsInc(filename: string) {
+    //const arrColors: { [key: string]: number[] } = {};
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+    const content = fs.readFileSync(filename, 'utf8');
+    let arrComments = commentsInDoc(content);
+    let last = 0;
+    let clean = "";
+    arrComments.forEach((a, b) => {
+        if (last !== a[0] + 1) {
+            let str = content.substring(last, a[0]);
+            clean += str;
+        }
+        last = a[1];
+    });
+    if (last < content.length) {
+        clean += content.substring(last, content.length);
+    }
+    const regEx = new RegExp('#declare\\s*([^=]*)=\\s*([^;]*);', "g");
+
+    let match;
+    while (match = regEx.exec(clean)) {
+<<<<<<< HEAD
+        let nom = match[1].trim();
+        let val = match[2].trim();
+        if (val.indexOf("*") > -1) {
+            getColorNameVals(nom, val);
+        } else {
+            let mm = colorRegexp().exec(val);
+            if (mm) {
+                colorincValues[nom] = rgbftArr(mm);
+=======
+        let val = match[2].trim();
+        let mm = colorRegexp().exec(val);
+        let nom = match[1].trim();
+        if (mm) {
+            colorNames.push(nom);
+            colorincValues[nom] = rgbftArr(mm);
+        } else {
+            let parts = val.split("*");
+            if (colorincValues[parts[0]]) {
+                let value = colorincValues[parts[0]].slice();
+                if (parts.length === 2) {
+                    let mult = parseFloat(parts[1]);
+                    value.forEach((a, b) => { value[b] = a * mult; });
+                }
+                colorincValues[nom] = value;
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+            }
+        }
+    }
+}
 export default class GlobalCompletionItemProvider implements vscode.CompletionItemProvider {
     protected _colors: vscode.CompletionItem[];
     protected _finishes: vscode.CompletionItem[];
@@ -24,21 +97,13 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
     }
 
     provideCompletionItems(document: vscode.TextDocument, position: vscode.Position) {
-
         const linePrefix = document.lineAt(position).text.substring(0, position.character);
-        //if (!linePrefix.endsWith('color ') && !linePrefix.endsWith('finish ') && !linePrefix.endsWith('texture ') && !linePrefix.endsWith('interior ')) {
-        //    return undefined;
-        //}
-
-        //return this._colors;
-
         if (linePrefix.endsWith('color ')) { return this._colors; }
         else if (linePrefix.endsWith('finish { ')) { return this._finishes; }
         else if (linePrefix.endsWith('texture { ')) { return this._textures; }
         else if (linePrefix.endsWith('interior { ')) { return this._interiors; }
         else if (linePrefix.endsWith('color_map { ')) { return this._color_maps; }
         else if (linePrefix.endsWith('pigment { ')) { return this._pigments; }
-        
         return undefined;
     }
 
@@ -46,31 +111,31 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
         let settings = Support.getPOVSettings();
         if (settings.libraryPath.length > 0) {
             // JAC: Not ready to load all INC files yet, start with targeted ones
-            if (fs.existsSync(settings.libraryPath+'/colors.inc')) { this.loadFile(settings.libraryPath+'/colors.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/finish.inc')) { this.loadFile(settings.libraryPath+'/finish.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/glass.inc')) { this.loadFile(settings.libraryPath+'/glass.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/golds.inc')) { this.loadFile(settings.libraryPath+'/golds.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/metals.inc')) { this.loadFile(settings.libraryPath+'/metals.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stones1.inc')) { this.loadFile(settings.libraryPath+'/stones1.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stones2.inc')) { this.loadFile(settings.libraryPath+'/stones2.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/stars.inc')) { this.loadFile(settings.libraryPath+'/stars.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/textures.inc')) { this.loadFile(settings.libraryPath+'/textures.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/woods.inc')) { this.loadFile(settings.libraryPath+'/woods.inc'); }
-            if (fs.existsSync(settings.libraryPath+'/woodmaps.inc')) { this.loadFile(settings.libraryPath+'/woodmaps.inc'); }
+            let includes = ["colors", "finish", "glass", "golds", "metals", "stones1", "stones2", "stars", "textures", "woods", "woodmaps"];
+            includes.forEach((a) => {
+                let includePath = settings.libraryPath + '/' + a + '.inc';
+                if (fs.existsSync(includePath)) { this.loadFile(includePath); }
+            });
         }
     }
 
     loadFile(fileName: string) {
         const content = fs.readFileSync(fileName, 'utf8');
+        if (fileName.indexOf("colors.inc") > 0) {
+<<<<<<< HEAD
+=======
+            console.log("parse colors.inc");
+>>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+            getColorsInc(fileName);
+        }
         let filePieces = fileName.split('/');
-        let incName = filePieces[filePieces.length-1];
+        let incName = filePieces[filePieces.length - 1];
         let pieces = content.replace(/\r?\n|\r/g, ' ').replace(/=/g, ' ').split(/\s+/);
-        for (let i = 0; i<pieces.length; i++) {
-            if (pieces[i] == '#declare' && (i+2) < pieces.length) {
-                let newItem = new vscode.CompletionItem(pieces[i+1], vscode.CompletionItemKind.Constant);
+        for (let i = 0; i < pieces.length; i++) {
+            if (pieces[i] === '#declare' && (i + 2) < pieces.length) {
+                let newItem = new vscode.CompletionItem(pieces[i + 1], vscode.CompletionItemKind.Constant);
                 newItem.detail = incName;
-                switch (pieces[i+2])
-                {
+                switch (pieces[i + 2]) {
                     case 'color':
                     case 'rgb':
                     case 'rgbf':
