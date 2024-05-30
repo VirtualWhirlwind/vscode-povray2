@@ -96,6 +96,11 @@
 				"icon": "icons/povray-render-icon.png"
 			},
 			{
+				"command": "povray.povtoolsShow",
+				"title": "POV-Ray: Tools",
+				"icon": "icons/symbol-tools.svg"
+			},
+			{
 				"command": "povray.colormixer",
 				"title": "POV-Ray: Color Mixer",
 				"icon": "icons/symbol-color.svg"
@@ -106,6 +111,11 @@
 				{
 					"when": "resourceLangId == povray && resourceExtname != .inc",
 					"command": "povray.render",
+					"group": "navigation"
+				},
+				{
+					"when": "resourceLangId == povray && resourceExtname != .inc",
+					"command": "povray.povtoolsShow",
 					"group": "navigation"
 				},
 				{
@@ -123,6 +133,11 @@
 				{
 					"when": "resourceLangId == povray",
 					"command": "povray.colormixer",
+					"group": "navigation"
+				},
+				{
+					"when": "resourceLangId == povray",
+					"command": "povray.povtoolsShow",
 					"group": "navigation"
 				}
 			]
@@ -228,9 +243,11 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
+		"@types/jest": "^29.5.12",
 		"@types/mocha": "^9.1.0",
 		"@types/node": "^17.0.21",
 		"@types/vscode": "^1.65.0",
+		"@types/winreg": "^1.2.36",
 		"@typescript-eslint/eslint-plugin": "^5.14.0",
 		"@typescript-eslint/parser": "^5.14.0",
 		"@vscode/test-cli": "^0.0.8",
@@ -241,6 +258,7 @@
 		"vscode-test": "^1.6.1"
 	},
 	"dependencies": {
-		"os": "^0.1.2"
+		"os": "^0.1.2",
+		"winreg": "^1.2.5"
 	}
 }

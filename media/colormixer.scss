@@ -129,14 +129,11 @@ input[type="range"]:focus::-webkit-slider-thumb {
         border-radius: 6px;
         box-shadow: inset -2px -2px 3px #0008, inset 2px 2px 3px #fff8;
 
-<<<<<<< HEAD
         &:hover {
             box-shadow: inset 2px 2px 3px #0008, inset -2px -2px 3px #fff8;
 
         }
 
-=======
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
         &:before {
             content: attr(data-name);
             background: #0003;
@@ -144,14 +141,11 @@ input[type="range"]:focus::-webkit-slider-thumb {
             color: #fff;
             padding: 2px 0;
         }
-<<<<<<< HEAD
 
         &:hover:before {
             background: #fff3;
             color: #000;
         }
-=======
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     }
 }
 
@@ -226,7 +220,6 @@ input[type="range"]:focus::-webkit-slider-thumb {
 
 .tagCnt[inxname] {
     position: relative;
-<<<<<<< HEAD
     margin-top: 12px;
 
     &:before {
@@ -239,20 +232,6 @@ input[type="range"]:focus::-webkit-slider-thumb {
         padding: 1px 4px;
         left: 12px
     }
-=======
-    margin-top: 12px
-}
-
-.tagCnt[inxname]:before {
-    content: attr(inxname);
-    color: #fff;
-    position: absolute;
-    bottom: 100%;
-    background: rgba(20, 70, 113, .948);
-    font-size: 10px;
-    padding: 1px 4px;
-    left: 12px
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 }
 
 *,
@@ -272,13 +251,8 @@ body {
 }
 
 body {
-<<<<<<< HEAD
     background: #444;
     color: #ccc;
-=======
-    background: #444444;
-    color: #cccccc;
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     font-size: 14px;
 }
 
@@ -335,11 +309,6 @@ body {
     overflow: auto;
 }
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 #cnt {
     position: absolute;
     top: 0;
@@ -354,10 +323,7 @@ body {
     .marker {
         box-shadow: inset -2px -1px 2px #0005, inset 2px 1px 2px #fff5;
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     #radcnt {
         width: calc(100% - 12px);
         position: relative;
@@ -376,16 +342,10 @@ body {
                 position: absolute;
                 border-radius: 6px 6px 0 6px;
                 transform: rotate(45deg);
-<<<<<<< HEAD
                 top: 3px;
 
                 &.selected {
                     outline: 3px #fff solid;
-=======
-                top:3px;
-                &.selected{
-                    outline:3px #fff solid;
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
                 }
             }
         }
@@ -399,7 +359,6 @@ body {
         }
     }
 
-<<<<<<< HEAD
     .papelera {
         background-image: url('../icons/trash_icon.svg');
         background-repeat: no-repeat;
@@ -412,16 +371,11 @@ body {
     #gradData {
         margin: 12px;
         counter-reset: parts;
-=======
-    #gradData {
-        margin: 12px;
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 
         .marker {
             margin: 1px;
             padding: 3px;
             border-radius: 5px;
-<<<<<<< HEAD
             background-image: url('data:image/svg+xml,<%3Fxml version="1.0"%3F><svg style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M11 4 H4 a2 2 0 0 0-2 2 v14 a2 2 0 0 0 2 2 h14 a2 2 0 0 0 2-2v-7 M18.5 2.5 a2.121 2.121 0 0 1 3 3 L12 15 l-4 1 1-4 9.5-9.5z"/></svg>');
             background-repeat: no-repeat;
             background-position: 99%;
@@ -456,9 +410,24 @@ body {
 
         &.footer {
             flex: 0 1 auto;
-=======
-            background-image: url(../icons/edit_icon.svg);
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
         }
     }
+}
+
+
+.cnt-utf8 {
+    input[type=text] {
+        padding: 6px;
+        margin: 2px 12px;
+        font-size: 1.2em;
+        width: 95%;
+    }
+}
+input[type=button] {
+    margin: 6px;
+    padding: 4px 8px;
+    font-size: 1.205em;
+    border-radius: 4px;
+    border: 1px solid #0008;
+    box-shadow: inset 1px 1px 2px #fff, inset -1px -1px 2px #000, 1px 1px 2px #fff, -1px -1px 3px #0008;
 }

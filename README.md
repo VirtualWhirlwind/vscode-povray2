@@ -106,12 +106,13 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
 * Preview of color_maps on hover
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/Clipboard_04-20-2024_01.png)
-<<<<<<< HEAD
 * Viewer/editor for color_maps
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/color_map_editor.gif)
-=======
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+* Povray Tools - Container for small utilities
+    * String to UTF8: Converts strings with not ASCII characters for render in POV 
+
+    ![Screenshot of VS Code features with POV-Ray scene language](images/povray-tools-utf8_encode_05-30-2024.png)
 ## Requirements
 
 *This extension does not install POV-Ray*. You need to install it yourself. (Docker support suspended pending further testing)

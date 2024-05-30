@@ -1,7 +1,6 @@
 var offset = [0, 0];
 var markX = 0;
 var tMarker;
-<<<<<<< HEAD
 var currentMark;
 var markDown = false;
 var cmParts = new Array();
@@ -16,7 +15,7 @@ class cMapPart {
         this.color = color;
         this.pos = pos;
         let padre = gE("markersT");
-        let tColor = new PovClr().fromArr(this.color)._cssA;
+        let tColor = new PovClr(this.color)._cssA;
         // let pW = padre.offsetWidth;
         this.mrk = addEle("div", padre, "", { class: "marker", style: `background-color:${tColor};left:calc(` + (this.pos * 100) + `% - 6px)` });
         //        this.mrk.part = this;
@@ -43,8 +42,7 @@ class cMapPart {
         this.mrk.povColor = color;
         this.mrk.edit = this.mrkEdit;
         if (!this.tStop) {
-            this.tStop = elNS("stop", { "offset": (pos * 100.0) + "%", "stop-color": tColor });
-            gE("svgGrad").appendChild(this.tStop);
+            this.tStop = elNS("stop",gE("svgGrad"), { "offset": (pos * 100.0) + "%", "stop-color": tColor });
         }
         sortStops();
         this.mrk.arrStop = this.tStop;
@@ -57,7 +55,6 @@ class cMapPart {
             currentMark = _mark;
             markDown = true;
             markX = this.offsetLeft - e.clientX;
-            // offset = [this.offsetLeft - e.clientX, this.offsetTop - e.clientY];
         }, true);
         cmParts.push(this);
     }
@@ -96,19 +93,13 @@ class cMapPart {
         cmParts.sort(sortMarks);
         let s = "\tcolor_map{\n";
         cmParts.forEach((a) => {
-            let pClr = new PovClr().fromArr(a.color)._pov;
+            let pClr = new PovClr(a.color)._pov;
             s += "\t[" + a.pos + " " + pClr + "]\n";
         });
         s += "}";
         return s;
     }
 }
-=======
-var markDown = false;
-var iMark = 0;
-d.addEventListener("DOMContentLoaded", () => {
-});
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 
 truncVal = (v) => {
     return Math.floor(v * 100) / 10000;
@@ -126,31 +117,18 @@ d.addEventListener('mousemove', function (e) {
         offset = Math.min(Math.max(0, offs), 100);
         _sty(tMarker, { left: `calc(${offset}% - 6px)` });
         _atr(tMarker.arrStop, "offset", offset + "%");
-<<<<<<< HEAD
         ppp = tMarker;
         tMarker.edit.value = truncVal(offset);
         currentMark.pos = truncVal(offset);
-=======
-        tMarker.edit.value = truncVal(offset);
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
         sortStops();
     }
 }, true);
 
 function compStops(a, b) {
-<<<<<<< HEAD
     let aO = _atrF(a, "offset");
     let bO = _atrF(b, "offset");
     if (aO < bO) { return -1; }
     if (aO > bO) { return 1; }
-=======
-    if (_atrF(a, "offset") < _atrF(b, "offset")) {
-        return -1;
-    }
-    if (_atrF(a, "offset") > _atrF(b, "offset")) {
-        return 1;
-    }
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     return 0;
 }
 
@@ -176,21 +154,10 @@ function sortStops() {
             gE("gradData").appendChild(e);
         });
     }
-<<<<<<< HEAD
-=======
-
-    /*
-    var stops = Array.from(qSel("stop"));
-    let sorted = stops.sort(compStops);
-
-    var edits = Array.from(qSel("#gradData .marker"));
-*/
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 }
 selMark = (mark) => {
     Array.from(qSel(".marker.selected")).forEach((a) => { a.classList.remove("selected"); });
     mark.classList.add("selected");
-<<<<<<< HEAD
     cmParts.forEach((a) => {
         if (a.mrk === mark) {
             selPart = a;
@@ -201,74 +168,9 @@ selMark = (mark) => {
 markPrevNext = function (pos) {
     let prev = null, next = null;
     Array.from(gE("svgGrad").getElementsByTagName("stop")).forEach((a, b) => {
-=======
-};
-
-addMark = function (clr, percent, id, tStop) {
-    padre = gE("markersT");
-    tColor = new PovClr();
-    tColor.fromArr(vals);
-    pW = padre.offsetWidth;
-    var mrk = addEle("div", padre, "", { id: id, class: "marker", style: "background:" + clr + ";left:calc(" + percent + "% - 6px)" });
-    selMark(mrk);
-    var mrkEditDiv = addEle("div", gE("gradData"), "", {
-        id: "divMark" + id, class: "marker", style: "background-color:" + clr + ";"
-    });
-
-    mrkEditDiv.mark = mrk;
-    var mrkEdit = addEle("input", mrkEditDiv, "", {
-        id: id, value: Math.floor(percent * 100) / 10000, type: "text"
-    });
-    mrkEditDiv.addEventListener('mousedown', function (e) {
-        //e.preventDefault();
-        //e.stopPropagation();
-        //tMarker = this;
-        //markDown = true;
-        //markX = this.offsetLeft - e.clientX;
-    }, true);
-    var mrkEditDivDel = addEle("input", mrkEditDiv, "", { value: "Delete", id: "divMarkDel" + id, type: "button" });
-    mrkEditDivDel.addEventListener('click', function (e) {
-        eee = this.parentElement;
-        arrStop= eee.mark.arrStop;
-        elDel(arrStop);
-        elDel(eee.mark);
-        elDel(this);
-        elDel(eee);
- 
-    }, true);
-    //_sty(mrk, { background: clr });
-    mrk.povColor = clr;
-    mrk.edit = mrkEdit;
-    if (!tStop) {
-        tStop = elNS("stop", { "offset": percent + "%", "stop-color": clr, num: iMark });
-        gE("svgGrad").appendChild(tStop);
-    }
-    sortStops();
-    mrk.arrStop = tStop;
-    mrk.addEventListener('mousedown', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        selMark(this);
-        tMarker = this;
-        markDown = true;
-        markX = this.offsetLeft - e.clientX;
-        // offset = [this.offsetLeft - e.clientX, this.offsetTop - e.clientY];
-    }, true);
-
-};
-
-markPrevNext = function (pos) {
-    let arrStop = gE("svgGrad").getElementsByTagName("stop");
-    let prev = null, next = null;
-    Array.from(arrStop).forEach((a, b) => {
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
         if (_atrF(a, "offset") < pos) { prev = a; };
         if (_atrF(a, "offset") > pos) { next = a; };
     });
     return [prev, next];
-<<<<<<< HEAD
 };
 // 161
-=======
-};
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49

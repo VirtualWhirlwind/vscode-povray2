@@ -1,21 +1,15 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
+//import * as winreg from 'windows-registry';
 import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 import * as fs from 'fs';
 import { TreeDataProvider } from './colorsdataprovider';
-<<<<<<< HEAD
-import { colorMixerShow, updateDecorations, panelColorMix } from './colormixer';
+import { colorMixerShow, updateDecorations} from './colormixer';
+import { povToolsShow } from './tools';
 import { hoverColorMap } from './colormap';
-
-// export var panelColorMix: vscode.WebviewPanel | undefined = undefined;
-=======
-import { colorMixerShow, updateDecorations, commentsInDoc, getCMap } from './colormixer';
-
-let panelColorMix: vscode.WebviewPanel | undefined = undefined;
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
-
+import * as winreg from 'winreg';
 export var colorNames: any = [];
 export var colorincValues: { [key: string]: number[] };
 
@@ -26,7 +20,7 @@ colorNames = ["Black"];
 export function activate(context: vscode.ExtensionContext) {
 
     vscode.workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
-        if (e.document.isDirty){
+        if (e.document.isDirty) {
             updateDecorations();
         }
     });
@@ -34,12 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerTasks();
     registerCommands(context);
 
-<<<<<<< HEAD
     colorMixerShow(context);
-=======
-    colorMixerShow(context, panelColorMix);
-    //colorMixerAction(context);
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
+    povToolsShow(context);
     // Code Completion
     context.subscriptions.push(vscode.languages.registerCompletionItemProvider('povray', new CompletionItemProvider(), ' '));
 
@@ -100,65 +90,11 @@ export function activate(context: vscode.ExtensionContext) {
         });*/
 
     let disposable = vscode.languages.registerHoverProvider("povray", {
-<<<<<<< HEAD
         provideHover(document, position, token) {
             return hoverColorMap(document, position, token);
         }
     });
     context.subscriptions.push(disposable);
-=======
-
-        provideHover(document, position, token) {
-            console.log(position);
-            // si position no está en comments
-            /*
-            let comments = commentsInDoc(document.getText());
-            let currChar = 0;
-            for (let i = 0; i < position.line; i++) {
-                currChar += document.lineAt(i).text.length;
-            }
-            currChar += position.character;
-            let inComment = false;
-            for (let i = 0; i < comments.length; i++) {
-                console.log(currChar, comments[i][0], comments[i][1], currChar >= comments[i][0], currChar <= comments[i][1]);
-                if (currChar >= comments[i][0] && currChar <= comments[i][1]) {
-                    inComment = true;
-                    break;
-                }
-                if (comments[i][0] > currChar) { break; }
-            }
-            */
-            // if (!inComment) {
-            const line = document.lineAt(position.line).text;
-            const cMapPattern = new RegExp(`(([^A-Za-z\\d_]+)colou{0,1}r_map\\s*{)`);
-
-            // getCMap
-            const match = line.match(cMapPattern);
-            if (match && match[1]) {
-                // cogemos la parte 
-                var lastLine = document.lineAt(document.lineCount - 1);
-                var textRange = new vscode.Range(new vscode.Position(position.line, 0), lastLine.range.end);
-                var text = document.getText(textRange);
-                //console.log(text);
-                const cMapPartsPattern = /[^A-Za-z\d_]+colou{0,1}r_map\s*{(?<parts>[^}]*)/gm;
-                const match = cMapPartsPattern.exec(text);
-                console.log("match", match);
-                if (match && match.groups && match.groups.parts) {
-                    let svg2 = getCMap(match.groups.parts);
-                    const hoverContent = ['### Color map preview', '', `![Frames](data:image/svg+xml,${encodeURIComponent(svg2)})`,
-                    ].join('\n');
-                    const md = new vscode.MarkdownString(hoverContent, true);
-
-                    md.isTrusted = true;
-                    return new vscode.Hover(md);
-                }
-            }
-            // }
-        }
-    });
-    context.subscriptions.push(disposable);
-
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
 
     let timeout: NodeJS.Timer | undefined = undefined;
     let activeEditor = vscode.window.activeTextEditor;
@@ -183,11 +119,6 @@ export function activate(context: vscode.ExtensionContext) {
      */
     vscode.window.onDidChangeActiveTextEditor(editor => {
         activeEditor = editor;
-        // panelColorMix.webview.postMessage({ command: {} });
-        if (panelColorMix !== undefined) {
-            console.log("notificar al webview el cambio");
-            console.log("panelColorMix.webview",panelColorMix.webview);
-        }
         if (editor) {
             triggerUpdateDecorations();
         }
@@ -307,19 +238,14 @@ export function registerTasks() {
 
     // Set up a handler for when the task ends
     vscode.tasks.onDidEndTaskProcess((e) => {
-
         // If there is an exit code and it is 0 then we assume the render task was successful
         if (e.exitCode !== undefined && e.exitCode === 0) {
-
             // Get the task definition from the event
             let taskDefinition = e.execution.task.definition;
-
             // If we were rendering a .pov file rather than a .ini
             if (taskDefinition.filePath.endsWith(".pov")) {
-
                 // Show an information notification to the user about the output file that was rendered
                 vscode.window.showInformationMessage("Rendered: " + taskDefinition.outFilePath);
-
                 const settings = Support.getPOVSettings();
                 // If the the user has indicated that the image that ws rendered should be opened
                 if (settings.openImageAfterRender === true) {
@@ -333,9 +259,51 @@ export function registerTasks() {
                     }
 
                     // Open the rendered image, but preserve the focus of the current document
-                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), { viewColumn: column, preserveFocus: true });
+                    vscode.commands.executeCommand('vscode.open', vscode.Uri.file(taskDefinition.outFilePath), {
+                        viewColumn: column,
+                        preserveFocus: true
+                     });
                 }
-
+                // open result textfile
+                let result = taskDefinition.filePath.replace(/\.(pov|ini)$/gi, "_result.txt");
+                if (fs.existsSync(result)) {
+                    vscode.workspace.openTextDocument(result).then((document) => {
+                        let text = document.getText();
+                        const regex = /File: ([^\s]*)/gi;
+                        let m = regex.exec(text);
+                        let docError = "";
+                        if (m !== null) {
+                            let errorFile = m[1].trim();
+                            // if the error is in an include file the file name does not contain the path
+                            if (!fs.existsSync(errorFile)) {
+                                // search this file in the same folder
+                                let currFile = taskDefinition.filePath;
+                                let pth = currFile.substr(0, currFile.lastIndexOf(path.sep)) + path.sep + errorFile;
+                                if (fs.existsSync(pth)) {
+                                    docError = pth;
+                                }
+                            } else {
+                                docError = errorFile;
+                            }
+                            const regexLine = /Line:\s([0-9]*)/gi;
+                            let line = regexLine.exec(text);
+                            if (line !== null) {
+                                var pos1 = new vscode.Position(parseInt(line[1]), 0);
+                                if (docError !== "") {
+                                    var openPath = vscode.Uri.file(docError);
+                                    vscode.workspace.openTextDocument(openPath).then(doc => {
+                                        vscode.window.showTextDocument(doc).then(editor => {
+                                            editor.selections = [new vscode.Selection(pos1, pos1)];
+                                            var range = new vscode.Range(pos1, pos1);
+                                            editor.revealRange(range);
+                                        });
+                                    });
+                                }
+                                vscode.window.showInformationMessage(text, { modal: true });
+                            }
+                        }
+                    });
+                }
             }
         }
     });
@@ -368,6 +336,97 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
+
+    const utf8Cmd = 'povray.utf8text';
+
+    // Create a command handler for running the POV-Ray Render Build Task
+    const utf8CmdHandler = (uri: vscode.Uri) => {
+        // Fetch all of the povray tasks
+        const input = vscode.window.createInputBox();
+        input.title = "String to UTF8";
+        // input.step = step;
+        input.prompt = "Write your string";
+        input.placeholder = "String with characters not ASCII";
+        // input.buttons = ["Btn 1", "Btn 2"];
+        let regKey = new winreg({ hive: winreg.HKLM, key: '\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' });
+
+        // list autostart programs
+        regKey.values(function (err, items /* array of RegistryItem */) {
+            if (err) {
+                console.log('ERROR: ' + err);
+            }
+            else {
+                for (var i = 0; i < items.length; i++) {
+                    console.log('ITEM: ' + items[i].name + '\t' + items[i].type + '\t' + items[i].value);
+                    console.log(items[i]);
+                }
+            }
+
+        });
+
+
+        // SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
+        input.onDidAccept(async () => {
+            const value = input.value;
+            input.enabled = false;
+            input.busy = true;
+            //if (!(await validate(value))) {	resolve(value);}
+            input.enabled = true;
+            input.busy = false;
+            console.log(input.value);
+            let str = input.value + "";
+            console.log(str);
+            let res = "";
+            for (var n = 0; n < str.length; n++) {
+                if (str.charCodeAt(n) > 127) {
+                    res += '" + chr(' + str.charCodeAt(n) + ') + "';
+                } else {
+                    res += str[n];
+                }
+            }
+            console.log(res);
+            input.dispose();
+        });
+        input.show();
+        /*
+        input.totalSteps = totalSteps;
+        input.value = value || '';
+        input.ignoreFocusOut = ignoreFocusOut ?? false;
+        let validating = validate('');
+                disposables.push(
+                    input.onDidTriggerButton(item => {
+                        if (item === QuickInputButtons.Back) {
+                            reject(InputFlowAction.back);
+                        } else {
+                            resolve(<any>item);
+                        }
+                    }),
+
+                    input.onDidChangeValue(async text => {
+                        const current = validate(text);
+                        validating = current;
+                        const validationMessage = await current;
+                        if (current === validating) {
+                            input.validationMessage = validationMessage;
+                        }
+                    }),
+                    input.onDidHide(() => {
+                        (async () => {
+                            reject(shouldResume && await shouldResume() ? InputFlowAction.resume : InputFlowAction.cancel);
+                        })()
+                            .catch(reject);
+                    })
+                );
+                if (this.current) {
+                    this.current.dispose();
+                }
+                this.current = input;
+*/
+        //For advanced usage there is also the  which is created via the  command
+    };
+
+    // Register the render command handler and add it to the context subscriptions
+    // context.subscriptions.push(vscode.commands.registerCommand(utf8Cmd, utf8CmdHandler));
 }
 
 // Gets the shell context for the current OS and VS Code configuration
@@ -484,6 +543,9 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
     renderOptions += getDimensionOptions(settings, fileInfo);
 
     renderOptions += " " + Support.wrapPathSpaces("Output_File_Name=" + Support.normalizePath(fileInfo.fileDir + settings.outputPath, context), settings);
+    let resultFile = fileInfo.fileName.replace(/.(pov|ini)/gi, "_result.txt");
+
+    renderOptions += " +GF" + resultFile;
 
     renderOptions += getLibraryPathOption(settings, context);
 
@@ -496,7 +558,6 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
     if (context.isWindowsPowershell) {
         renderOptions += " | Out-Null";
     }
-
     return renderOptions;
 }
 
@@ -512,8 +573,7 @@ export function getInputFileOption(settings: any, fileInfo: any, context: ShellC
             // and escape the space
             // "'"File\ Name.pov"'""
             fileInputOption = '"\'"' + fileInfo.fileName.replace(/ /g, "\\ ") + '"\'"';
-        }
-        else {
+        } else {
             if (context.isWindowsPowershell) {
                 fileInputOption = Support.wrapPathSpaces(fileInputOption, settings);
             } else {
@@ -632,6 +692,3 @@ export function getCustomCommandlineOptions(settings: any) {
 
     return customOptions;
 }
-
-
-

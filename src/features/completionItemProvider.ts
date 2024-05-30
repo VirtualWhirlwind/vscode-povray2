@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import Support from '../support/support'
-<<<<<<< HEAD
 import { colorincValues, colorNames } from '../extension';
 import { commentsInDoc } from '../colormixer';
 import { colorRegexp, rgbftArr } from '../colors';
@@ -19,16 +18,6 @@ function getColorNameVals(name: string, val: string) {
 }
 
 function getColorsInc(filename: string) {
-=======
-//import { getPOVSettings } from '../extension';
-import { colorincValues, colorNames } from '../extension';
-import { commentsInDoc } from '../colormixer';
-import { colorRegexp, rgbftArr } from '../colors';
-//import { EOL } from 'os';
-
-function getColorsInc(filename: string) {
-    //const arrColors: { [key: string]: number[] } = {};
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
     const content = fs.readFileSync(filename, 'utf8');
     let arrComments = commentsInDoc(content);
     let last = 0;
@@ -47,7 +36,6 @@ function getColorsInc(filename: string) {
 
     let match;
     while (match = regEx.exec(clean)) {
-<<<<<<< HEAD
         let nom = match[1].trim();
         let val = match[2].trim();
         if (val.indexOf("*") > -1) {
@@ -56,23 +44,6 @@ function getColorsInc(filename: string) {
             let mm = colorRegexp().exec(val);
             if (mm) {
                 colorincValues[nom] = rgbftArr(mm);
-=======
-        let val = match[2].trim();
-        let mm = colorRegexp().exec(val);
-        let nom = match[1].trim();
-        if (mm) {
-            colorNames.push(nom);
-            colorincValues[nom] = rgbftArr(mm);
-        } else {
-            let parts = val.split("*");
-            if (colorincValues[parts[0]]) {
-                let value = colorincValues[parts[0]].slice();
-                if (parts.length === 2) {
-                    let mult = parseFloat(parts[1]);
-                    value.forEach((a, b) => { value[b] = a * mult; });
-                }
-                colorincValues[nom] = value;
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
             }
         }
     }
@@ -122,10 +93,6 @@ export default class GlobalCompletionItemProvider implements vscode.CompletionIt
     loadFile(fileName: string) {
         const content = fs.readFileSync(fileName, 'utf8');
         if (fileName.indexOf("colors.inc") > 0) {
-<<<<<<< HEAD
-=======
-            console.log("parse colors.inc");
->>>>>>> 19fb9eaf4d847bcddabe15ce9d02824e85b70c49
             getColorsInc(fileName);
         }
         let filePieces = fileName.split('/');
