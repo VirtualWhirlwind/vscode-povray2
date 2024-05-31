@@ -77,7 +77,7 @@ test-scenes/**/*.pov-state
 .DS_Store
 
 # Ignore builds
-vscode-povray2-*.vsix
+# vscode-povray2-*.vsix
 
 # Ignore test output
 .vscode-test

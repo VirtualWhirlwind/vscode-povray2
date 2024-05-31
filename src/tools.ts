@@ -103,14 +103,13 @@ function wvPovTools(context: vc.ExtensionContext, webview: vc.Webview) {
 <pre>
 global_settings{ charset utf8 }
 </pre>
-            <label for="tx2utf8">Write your text here:</label><br>
-            <input type="text" value="" id="tx2utf8"><br>
-            <label for="tx2utf8result">Encoded string:</label><br>
-            <input type="text" value="" id="tx2utf8result"><br>
+            <label>Write your text here:<br><input type="text" value="" id="tx2utf8"></label><br>
+            <label>Encoded string:<br><input type="text" value="" id="tx2utf8result"></label><br>
+            <label><input type="checkbox" id="asComment">Include original string as comment</label><br>
             <input type="button" id="insertInEditor" value="Insert in editor">
         </div>`;
 
-    let tabGradientEditor = `<div class="tab-page" title="Gradient editor" id="gradEdit">
+    let tabFontSelectorWin = `<div class="tab-page" title="TrueType Fonts" id="gradEdit">
     <div class="box">
       <div class="row header">
         <div id="radcnt">
@@ -139,7 +138,7 @@ global_settings{ charset utf8 }
     <div class="flexbox-item header">
         <div class="tabpages">
             ${tabTextUtf8}
-            ${tabGradientEditor}
+            ${tabFontSelectorWin}
         </div>
         <div class="component-wrapper">
             <div class='table-wrapper fill-area content flexbox-item-grow'>

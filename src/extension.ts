@@ -1,7 +1,6 @@
 import * as os from 'os';
 import * as path from "path";
 import * as vscode from 'vscode';
-//import * as winreg from 'windows-registry';
 import CompletionItemProvider from './features/completionItemProvider';
 import Support from './support/support';
 import * as fs from 'fs';
