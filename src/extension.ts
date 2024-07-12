@@ -8,7 +8,6 @@ import { TreeDataProvider } from './colorsdataprovider';
 import { colorMixerShow, updateDecorations} from './colormixer';
 import { povToolsShow } from './tools';
 import { hoverColorMap } from './colormap';
-import * as winreg from 'winreg';
 export var colorNames: any = [];
 export var colorincValues: { [key: string]: number[] };
 
@@ -335,95 +334,6 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     // Register the render command handler and add it to the context subscriptions
     context.subscriptions.push(vscode.commands.registerCommand(renderCommand, renderCommandHandler));
-
-    const utf8Cmd = 'povray.utf8text';
-
-    // Create a command handler for running the POV-Ray Render Build Task
-    const utf8CmdHandler = (uri: vscode.Uri) => {
-        // Fetch all of the povray tasks
-        const input = vscode.window.createInputBox();
-        input.title = "String to UTF8";
-        // input.step = step;
-        input.prompt = "Write your string";
-        input.placeholder = "String with characters not ASCII";
-        // input.buttons = ["Btn 1", "Btn 2"];
-        let regKey = new winreg({ hive: winreg.HKLM, key: '\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' });
-
-        // list autostart programs
-        regKey.values(function (err, items /* array of RegistryItem */) {
-            if (err) {
-                console.log('ERROR: ' + err);
-            }
-            else {
-                for (var i = 0; i < items.length; i++) {
-                    console.log('ITEM: ' + items[i].name + '\t' + items[i].type + '\t' + items[i].value);
-                    console.log(items[i]);
-                }
-            }
-
-        });
-
-
-        // SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
-        input.onDidAccept(async () => {
-            const value = input.value;
-            input.enabled = false;
-            input.busy = true;
-            //if (!(await validate(value))) {	resolve(value);}
-            input.enabled = true;
-            input.busy = false;
-            console.log(input.value);
-            let str = input.value + "";
-            console.log(str);
-            let res = "";
-            for (var n = 0; n < str.length; n++) {
-                if (str.charCodeAt(n) > 127) {
-                    res += '" + chr(' + str.charCodeAt(n) + ') + "';
-                } else {
-                    res += str[n];
-                }
-            }
-            console.log(res);
-            input.dispose();
-        });
-        input.show();
-        /*
-        input.totalSteps = totalSteps;
-        input.value = value || '';
-        input.ignoreFocusOut = ignoreFocusOut ?? false;
-        let validating = validate('');
-                disposables.push(
-                    input.onDidTriggerButton(item => {
-                        if (item === QuickInputButtons.Back) {
-                            reject(InputFlowAction.back);
-                        } else {
-                            resolve(<any>item);
-                        }
-                    }),
-
-                    input.onDidChangeValue(async text => {
-                        const current = validate(text);
-                        validating = current;
-                        const validationMessage = await current;
-                        if (current === validating) {
-                            input.validationMessage = validationMessage;
-                        }
-                    }),
-                    input.onDidHide(() => {
-                        (async () => {
-                            reject(shouldResume && await shouldResume() ? InputFlowAction.resume : InputFlowAction.cancel);
-                        })()
-                            .catch(reject);
-                    })
-                );
-                if (this.current) {
-                    this.current.dispose();
-                }
-                this.current = input;
-*/
-        //For advanced usage there is also the  which is created via the  command
-    };
-
     // Register the render command handler and add it to the context subscriptions
     // context.subscriptions.push(vscode.commands.registerCommand(utf8Cmd, utf8CmdHandler));
 }
@@ -543,7 +453,16 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
 
     renderOptions += " " + Support.wrapPathSpaces("Output_File_Name=" + Support.normalizePath(fileInfo.fileDir + settings.outputPath, context), settings);
     let resultFile = fileInfo.fileName.replace(/.(pov|ini)/gi, "_result.txt");
+/*
+    console.log(resultFile);
+    if (fs.existsSync(resultFile)) {
+        console.log("existe " + resultFile);
+        fs.rm(resultFile,(a)=>{});
+    }else{
+        console.log("NO existe " + resultFile);
 
+    }
+*/
     renderOptions += " +GF" + resultFile;
 
     renderOptions += getLibraryPathOption(settings, context);
@@ -557,6 +476,7 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
     if (context.isWindowsPowershell) {
         renderOptions += " | Out-Null";
     }
+    console.log(renderOptions);
     return renderOptions;
 }
 

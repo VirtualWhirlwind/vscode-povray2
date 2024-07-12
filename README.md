@@ -113,6 +113,10 @@ This extension allows you to use [Visual Studio Code](https://code.visualstudio.
     * String to UTF8: Converts strings with not ASCII characters for render in POV 
 
     ![Screenshot of VS Code features with POV-Ray scene language](images/povray-tools-utf8_encode_05-30-2024.png)
+    * Font selector: Only for Windows, preview the fonts installed in the system and insert in the document being edited
+![Screenshot of VS Code features with POV-Ray scene language](images/font_selector_07-12-2024_01.png)
+ 
+
 ## Requirements
 
 *This extension does not install POV-Ray*. You need to install it yourself. (Docker support suspended pending further testing)

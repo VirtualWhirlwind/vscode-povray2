@@ -1,4 +1,6 @@
-let d = document, range, colorpov, wvvscode;
+let d = document, range, colorpov;
+var wvvscode = acquireVsCodeApi();
+
 gE = function (id) { return d.getElementById(id); };
 qSel = function (s) { return d.querySelectorAll(s); };
 _atr = function (o, atr, val) { if (val) { o.setAttribute(atr, val); } else { return o.getAttribute(atr); } };

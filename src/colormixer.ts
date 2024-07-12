@@ -48,11 +48,16 @@ export function commentsInDoc(doc: any) {
 function cmdColorMixer(context: vc.ExtensionContext) {
     let editor = vc.window.activeTextEditor;
     if (!panelColorMix) {
+
+
+        const vscss = vc.Uri.file(path.join(vc.env.appRoot,"out/vs/workbench"));
+
+
         const panel = vc.window.createWebviewPanel("", 'POVray color mixer', vc.ViewColumn.Two, {
             enableScripts: true,
             retainContextWhenHidden: true,
             enableCommandUris: true,
-            localResourceRoots: [vc.Uri.file(path.join(context.extensionPath, 'media')), vc.Uri.file(path.join(context.extensionPath, 'icons'))],
+            localResourceRoots: [vscss,vc.Uri.file(path.join(context.extensionPath, 'media')), vc.Uri.file(path.join(context.extensionPath, 'icons'))],
         });
         panel.webview.html = wvColorMixer(context, panel.webview);
         panel.webview.onDidReceiveMessage(
@@ -192,16 +197,33 @@ function wvColorMixer(context: vc.ExtensionContext, webview: vc.Webview) {
 <body>` + cIncValues + `
 <div class="page-wrapper">
     <div class="flexbox-item header">
-        <div id="colmixer">
-            <div id='bgmixer'><div id='mixer'></div><div id='mixeralpha'></div></div>
-                <div id="col2">`;
+         <div class="cntMix" id="colmixer">
+            <div class="col1">
+                <div id='bgmixer'>
+                    <div id='mixer'></div>
+                    <div id='mixeralpha'></div>
+                </div>
+            </div>
+    `;
     clrNames.forEach((a, b) => {
-        html += `<div class='range'>
-                <label for='v${a}'>${a}</label><input type='range' min='0' max='1' step='0.001' id='v${a}' value='0'><input type='text' id='s${a}' value='0'>
-            </div>`;
+        html += `<div><label for='v${a}'>${a}</label></div>
+            <div><input type='range' min='0' max='1' step='0.001' id='v${a}' value='0'></div>
+            <div><input type='text' id='s${a}' value='0'></div>`;
     });
     html += `
-                </div>
+  </div>
+   <div>
+
+
+
+
+
+                `;
+    clrNames.forEach((a, b) => {
+        html += ``;
+    });
+    html += `
+              
             </div>
             <div class='range'><button id="btnApply">Insert in active document</button></div>
         </div>

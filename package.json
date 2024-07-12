@@ -37,7 +37,11 @@
 					".pov",
 					".inc"
 				],
-				"configuration": "./language-configuration.json"
+				"configuration": "./language-configuration.json",
+				"icon": {
+					"dark": "./icons/povray-render-icon-dark.svg",
+					"light": "./icons/povray-render-icon-light.svg"
+				  }
 			}
 		],
 		"grammars": [
@@ -93,17 +97,26 @@
 			{
 				"command": "povray.render",
 				"title": "POV-Ray: Render Scene",
-				"icon": "icons/povray-render-icon.png"
+				"icon": {
+					"light": "icons/povray-render-icon-light.svg",
+					"dark": "icons/povray-render-icon-dark.svg"
+				}
 			},
 			{
 				"command": "povray.povtoolsShow",
 				"title": "POV-Ray: Tools",
-				"icon": "icons/symbol-tools.svg"
+				"icon": {
+					"light": "icons/povray-tool-light.svg",
+					"dark": "icons/povray-tool-dark.svg"
+				}
 			},
 			{
 				"command": "povray.colormixer",
 				"title": "POV-Ray: Color Mixer",
-				"icon": "icons/symbol-color.svg"
+				"icon": {
+					"light": "icons/povray-color-mixer-light.svg",
+					"dark": "icons/povray-color-mixer-dark.svg"
+				}
 			}
 		],
 		"menus": {
@@ -258,6 +271,7 @@
 		"vscode-test": "^1.6.1"
 	},
 	"dependencies": {
+		"get-system-fonts": "^2.0.2",
 		"os": "^0.1.2",
 		"winreg": "^1.2.5"
 	}

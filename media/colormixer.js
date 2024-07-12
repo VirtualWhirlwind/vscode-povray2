@@ -1,16 +1,13 @@
 
 drawMixer = function () {
-  //arrStop = gE("svgGrad").getElementsByTagName("stop");
-  //padre = gE("markersT");
-
   new cMapPart([1, 1, 1, 0, 0], 0);
   new cMapPart([0, 0, 0, 0, 0], 1);
 };
 
 let tClr;
 d.addEventListener("DOMContentLoaded", () => {
-  vals = Array.from(qSel(".range input[type=range]"));
-  valsStr = Array.from(qSel(".range input[type=text]"));
+  vals = Array.from(qSel("#colmixer input[type=range]"));
+  valsStr = Array.from(qSel("#colmixer input[type=text]"));
 
   drawMixer();
   vals.forEach((a, b) => {
@@ -138,15 +135,7 @@ d.addEventListener("DOMContentLoaded", () => {
   posMarks = function () {
     //drawMixer();
   };
-  /* var targetNode = document.getElementById('gradEdit');
-   var observer = new MutationObserver(function(){
-       if(targetNode.style.display != 'none'){
-           posMarks();
-       }
-   });
-   observer.observe(targetNode, { attributes: true, childList: true });
-   //respondToVisibility(gE("gradEdit"), posMarks);
-*/
+
   gE("markersT").addEventListener("mousedown", (e) => {
     let este = gE("markersT");
     pos = e.clientX - este.getBoundingClientRect().x;
@@ -154,7 +143,6 @@ d.addEventListener("DOMContentLoaded", () => {
     colors = markPrevNext(pos);
     //iMark++;
     new cMapPart(tClr.clr, pos);
-    // addMark(tClr.clr, pos, "mark" + iMark);
   });
 });
 
