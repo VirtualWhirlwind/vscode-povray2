@@ -1,14 +1,11 @@
 let tClr;
 d.addEventListener("DOMContentLoaded", () => {
-  console.log(qSel("#filterFont"));
   qSel("#filterFont")[0].onkeyup = (cnt) => {
     let n = cnt.srcElement.value.toLowerCase();
     Array.from(qSel("#cntFont .btn")).forEach((a) => {
       let btnText = a.innerText.toLowerCase();
-      let visible = (n === "") ? "inline-block" : ((btnText.indexOf(n) === -1) ? "none" : "inline-block");
-      _sty(a, { display: visible });
+      _sty(a, { display:  (n === ""|| btnText.indexOf(n) !== -1) ? "inline-block" : "none"});
     });
-
   };
 
   let tx2utf8 = gE("tx2utf8");
@@ -111,9 +108,7 @@ function createfontButtons(allFonts) {
   for (var n in allFonts) {
     let n2 = allFonts[n][0];
     let fPath = allFonts[n][1];
-    //console.log("allFonts", allFonts[n]);
     var fName = n2.replace(regex, "");
-    console.log(n2, "___", fName);
     let tFont = parseFont(n2);
     /*   
    face: "Dubai Medium"
@@ -143,9 +138,7 @@ function createfontButtons(allFonts) {
     }
     este.vars[tVar] = fPath;
     este.names[tVar] = n2;
-
     if (!existe) {
-      //sortedFonts.push({ family: fName, variants: [{ name: n, path: allFonts[n] }] });
       sortedFonts.push(este);
     }
   }
@@ -159,9 +152,7 @@ function createfontButtons(allFonts) {
   nnn = gE("cntFont");
 
   sortedFonts.forEach((a) => {
-    // console.log("sortedFonts.forEach", a);
     let labels = { "a": "Default", "b": "Bold", "i": "Italic", "bi": "Bold+Italic" };
-    //if (a.vars["a"] === "") {
     var btn = addEle("button", nnn, a.family, { class: "btn" });
     var vars = a.vars;
     var family = a.family;
@@ -206,7 +197,7 @@ function findFont(name) {
       _sty(a, { display: "inline-block" });
     });
   } else {
-    allOpts.forEach((a, b) => {
+    allOpts.forEach((a) => {
       _sty(a, { display: (a.innerText.toLowerCase().indexOf(n) === -1) ? "none" : "inline-block" });
     });
   }

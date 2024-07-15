@@ -98,10 +98,6 @@ pre {
     font-family: $fFamily;
 }
 
-select option {
-    padding: 3px 6px;
-}
-
 /******** Chrome, Safari, Opera and Edge Chromium styles ********/
 /* slider track */
 input[type=range]::-webkit-slider-runnable-track {
@@ -241,8 +237,8 @@ input[type=range]:focus::-webkit-slider-thumb {
 
 .tab-page {
     display: none;
-    margin: 12px;
-    width: calc(100% - 24px);
+    margin: 6px;
+    width: calc(100% - 12px);
     height: calc(100% - 64px);
     overflow: hidden;
 }
@@ -462,17 +458,6 @@ body {
         font-size: 1.2em;
         width: 95%;
     }
-}
-
-
-
-option {
-    padding: 3px 6px;
-    border: solid 1px #222;
-    margin: 0px;
-    border-radius: 6px;
-    background: #ccc;
-    box-shadow: inset 2px 2px 2px #fff, inset -2px -2px 2px #444;
 }
 
 #fontPreview {

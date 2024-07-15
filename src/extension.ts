@@ -453,16 +453,7 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
 
     renderOptions += " " + Support.wrapPathSpaces("Output_File_Name=" + Support.normalizePath(fileInfo.fileDir + settings.outputPath, context), settings);
     let resultFile = fileInfo.fileName.replace(/.(pov|ini)/gi, "_result.txt");
-/*
-    console.log(resultFile);
-    if (fs.existsSync(resultFile)) {
-        console.log("existe " + resultFile);
-        fs.rm(resultFile,(a)=>{});
-    }else{
-        console.log("NO existe " + resultFile);
 
-    }
-*/
     renderOptions += " +GF" + resultFile;
 
     renderOptions += getLibraryPathOption(settings, context);
@@ -476,7 +467,6 @@ export function buildRenderOptions(settings: any, fileInfo: any, context: ShellC
     if (context.isWindowsPowershell) {
         renderOptions += " | Out-Null";
     }
-    console.log(renderOptions);
     return renderOptions;
 }
 

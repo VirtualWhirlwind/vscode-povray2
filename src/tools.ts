@@ -19,13 +19,6 @@ async function fontList(panel: vc.WebviewPanel) {
             [key: string]: string[];
         } = {};
 
-    // Adding elements to the associative array
-
-    // In an async function...
-    /**
-     additionalFolders [string[]] - Paths to additional folders to recursively scan for font files. Absolute paths are recommended. Default: []
-extensions [string[]] - List of file extensions to treat as font files. Default: ['ttf', 'otf', 'ttc', 'woff', 'woff2']
-     */
     var listFnts: Object[] = [];
     const files = await getSystemFonts({ extensions: ['ttf'] }); // ['/Library/Fonts/Georgia.ttf', ...]
 
@@ -33,12 +26,9 @@ extensions [string[]] - List of file extensions to treat as font files. Default:
         let parts = a.split(path.sep);
         listFnts.push({ file: parts[parts.length - 1], path: a });
         ttfMap[parts[parts.length - 1]] = [a];
-        //arrF.push([parts[parts.length - 1].replace(/.ttf/gi, ""), a]);
     });
 
-    // HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
     let regKey = new winreg({ hive: winreg.HKLM, key: '\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts' });
-    // list autostart programs
     regKey.values(function (err, items /* array of RegistryItem */) {
         if (err) {
             console.log('ERROR: ' + err);
